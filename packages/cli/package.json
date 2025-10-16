@@ -1,5 +1,5 @@
 {
-  "name": "@tot/cli",
+  "name": "tree-of-thought-cli",
   "version": "0.1.0",
   "description": "Tree of Thought CLI - Install /tot command for Claude Code",
   "scripts": {

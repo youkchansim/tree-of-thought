@@ -31,7 +31,7 @@ Tree of Thought (ToT) is a framework that enables AI models to solve complex pro
 Install the `/tot` command directly to Claude Code:
 
 ```bash
-npm install -g @tot/cli
+npm install -g tree-of-thought-cli
 ```
 
 Then use it in Claude Code:
@@ -39,91 +39,43 @@ Then use it in Claude Code:
 /tot "your problem description"
 ```
 
-See [@tot/cli README](./packages/cli/README.md) for details.
+See [CLI README](./packages/cli/README.md) for details.
 
-### For Library Users
+### What Gets Installed
 
-#### Installation
+After installation, you'll have:
+- `/tot` command in Claude Code CLI
+- Core documentation in `~/.claude/tot/core/`
+- Problem templates in `~/.claude/tot/templates/`
+- Usage examples in `~/.claude/tot/examples/`
 
-```bash
-# Clone the repository
-git clone https://github.com/youkchansim/tree-of-thought.git
-cd tree-of-thought
+### How It Works
 
-# Install dependencies
-pnpm install
-
-# Build
-pnpm build
-```
-
-#### Basic Usage
-
-```typescript
-import {
-  MockThoughtGenerator,
-  executeBFS,
-  DebugTask
-} from '@tot/core';
-
-// 1. Configure task
-const debugTask = new DebugTask();
-const config = debugTask.config;
-
-// 2. Create thought generator
-const generator = new MockThoughtGenerator();
-
-// 3. Define problem
-const problem = "Find the root cause of memory leak in production";
-
-// 4. Execute BFS search
-const result = await executeBFS(problem, config, generator);
-
-// 5. Get results
-console.log('Best solution:', result.bestThought.text);
-console.log('Search path:', result.path);
-console.log('Total thoughts generated:', result.allThoughts.length);
-```
-
-### Claude Code CLI Integration
-
-See `packages/core/src/generators/claude-code.example.ts` for Task tool integration.
-
-```typescript
-import { ThoughtGenerator } from '@tot/core';
-
-class ClaudeCodeThoughtGenerator implements ThoughtGenerator {
-  async generate(problem, currentThoughts, depth, args) {
-    // Integrate with Codex MCP using Task tool
-    // See claude-code.example.ts for implementation details
-  }
-}
-```
+Claude Code reads the documentation files and implements the Tree of Thought algorithm dynamically. No library code is executed - everything is prompt-based and transparent.
 
 ## 📖 Documentation
 
-- **[Core API Reference](./packages/core/README.md)** - @tot/core API documentation
+- **[Command Reference](./packages/cli/commands/tot.md)** - `/tot` command usage and examples
+- **[Core Algorithms](./docs/guide/core/)** - BFS, DFS, evaluation, selection algorithms
+- **[Problem Templates](./docs/guide/templates/)** - Debug, refactor, design templates
+- **[Usage Examples](./docs/examples/)** - Real-world problem-solving examples
 - **[Output Format](./docs/OUTPUT_FORMAT.md)** - Detailed output format specification
-- **[Examples](./docs/EXAMPLES.md)** - Real-world usage examples
-- **[Architecture](./docs/ARCHITECTURE.md)** - Design structure and principles
-- **[Integration Guide](./docs/INTEGRATION.md)** - Claude Code CLI integration
 
 ## 🏗️ Architecture
 
 ```
 tree-of-thought/
 ├── packages/
-│   └── core/                    # Core ToT library
-│       ├── src/
-│       │   ├── types/          # Type system and data structures
-│       │   ├── evaluation/     # Evaluation functions (Value, Vote, Hybrid)
-│       │   ├── selection/      # Selection algorithms (Greedy, Sample, etc.)
-│       │   ├── generators/     # ThoughtGenerator interface
-│       │   ├── algorithms/     # Search algorithms (BFS, DFS)
-│       │   └── tasks/          # Task system (Debug, Refactor, etc.)
-│       └── dist/               # Build output
-├── original-tot/               # Original documentation backup
-└── docs/                       # Usage documentation
+│   └── cli/                    # CLI installation package
+│       ├── commands/tot.md     # Command definition
+│       └── scripts/install.js  # Installation script
+├── docs/
+│   ├── guide/
+│   │   ├── core/              # Algorithm documentation (15+ files)
+│   │   └── templates/         # Problem templates
+│   ├── examples/              # Usage examples
+│   └── OUTPUT_FORMAT.md       # Output specification
+└── README.md
 ```
 
 ## 🎯 How It Works
@@ -196,26 +148,25 @@ interface ToTArgs {
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+We welcome contributions! Please open an issue or pull request.
 
-### Development Setup
+### Development
 
 ```bash
 # Clone repository
 git clone https://github.com/youkchansim/tree-of-thought.git
 cd tree-of-thought
 
-# Install dependencies
-pnpm install
+# Test locally (without publishing)
+cd packages/cli
+npm link
 
-# Build packages
-pnpm build
+# The /tot command will be available in Claude Code
+# Make changes to documentation in docs/guide/
 
-# Run tests
-pnpm test
-
-# Start development
-pnpm dev
+# When ready to publish
+npm version patch
+npm publish
 ```
 
 ## 📄 License
