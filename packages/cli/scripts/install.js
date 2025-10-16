@@ -54,15 +54,23 @@ function main() {
 
     // Copy each command file
     let installedCount = 0;
+    let updatedCount = 0;
     files.forEach(file => {
       const sourcePath = path.join(sourceDir, file);
       const targetPath = path.join(targetDir, file);
 
       try {
+        const isUpdate = fs.existsSync(targetPath);
         fs.copyFileSync(sourcePath, targetPath);
         const commandName = path.basename(file, '.md');
-        log(`   ✓ Installed: /${commandName}`, 'green');
-        installedCount++;
+
+        if (isUpdate) {
+          log(`   ↻ Updated: /${commandName}`, 'yellow');
+          updatedCount++;
+        } else {
+          log(`   ✓ Installed: /${commandName}`, 'green');
+          installedCount++;
+        }
       } catch (error) {
         log(`   ✗ Failed to install ${file}: ${error.message}`, 'red');
       }
@@ -70,7 +78,12 @@ function main() {
 
     // Summary
     log(`\n✅ Installation complete!`, 'green');
-    log(`   ${installedCount} command(s) installed`, 'green');
+    if (installedCount > 0) {
+      log(`   ${installedCount} command(s) installed`, 'green');
+    }
+    if (updatedCount > 0) {
+      log(`   ${updatedCount} command(s) updated`, 'yellow');
+    }
     log(`\nUsage:`, 'cyan');
     log(`   Open Claude Code and type: /tot "your problem"`, 'cyan');
     log(`\nDocumentation:`, 'cyan');
