@@ -307,6 +307,101 @@ Thought 1 [Claude]: 디렉토리 구조 완전성 검증
 └────────────────────────────────────────────────────────────┘
 ```
 
+## Multi-Language Support (v0.1.4+)
+
+**IMPORTANT**: Starting from v0.1.4, ToT automatically detects input language and adapts all outputs.
+
+### Auto-Detection Rules
+
+- **Korean input** (contains Hangul) → All outputs in Korean
+- **English input** (no Hangul) → All outputs in English
+- **Mixed input** → Follow majority language (Korean if Hangul present)
+
+### Language-Specific Output Examples
+
+#### Korean Input Example
+
+```bash
+/tot "메모리 누수 - 프로덕션 환경에서 1시간당 50MB 증가"
+```
+
+Output:
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 🌳 Tree of Thought: 메모리 누수 - 프로덕션 환경에서 1시간당 50MB 증가 │
+└──────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Level 0: Initial Thoughts (n_generate=5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thought 1 [Claude]: 이벤트 리스너 미제거 분석
+┌────────────────────────────────────────────────────────────┐
+│ 이벤트 리스너가 등록 후 제거되지 않아 메모리 누수 발생:      │
+│ • addEventListener 호출 후 removeEventListener 미호출     │
+│ • 컴포넌트 언마운트 시 cleanup 함수 누락                   │
+│ • 전역 이벤트 핸들러 누적                                   │
+│                                                            │
+│ 검증 방법: Chrome DevTools Memory Profiler 사용            │
+└────────────────────────────────────────────────────────────┘
+
+Evaluating Thought 1 [Claude]...
+  Eval 1: 8.5/10 → 일반적인 메모리 누수 원인으로 타당함
+  Eval 2: 9.0/10 → 검증 방법이 구체적이고 실용적
+  Eval 3: 8.7/10 → 해결책 구현이 비교적 간단함
+  ────────────────
+  Average: 8.7/10 ⭐ (Confidence: 95%)
+```
+
+#### English Input Example
+
+```bash
+/tot "Memory leak - production grows 50MB per hour"
+```
+
+Output:
+```
+┌──────────────────────────────────────────────────────────────┐
+│ 🌳 Tree of Thought: Memory leak - production grows 50MB per hour │
+└──────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Level 0: Initial Thoughts (n_generate=5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thought 1 [Claude]: Event listener cleanup analysis
+┌────────────────────────────────────────────────────────────┐
+│ Event listeners not removed causing memory leak:           │
+│ • addEventListener called without removeEventListener      │
+│ • Missing cleanup functions on component unmount          │
+│ • Global event handlers accumulating                      │
+│                                                            │
+│ Verification: Use Chrome DevTools Memory Profiler         │
+└────────────────────────────────────────────────────────────┘
+
+Evaluating Thought 1 [Claude]...
+  Eval 1: 8.5/10 → Common cause of memory leaks, valid
+  Eval 2: 9.0/10 → Verification method is concrete and practical
+  Eval 3: 8.7/10 → Solution implementation is relatively simple
+  ────────────────
+  Average: 8.7/10 ⭐ (Confidence: 95%)
+```
+
+### Framework Labels (Always English)
+
+Regardless of input language, framework structure labels remain in English for consistency:
+- `📍 Level 0:`, `📊 Level 1:`, `🎯 Level 2:`, `✅ Final Conclusion`
+- `Thought 1 [Claude]:`, `Thought 4 [Codex]:`
+- `Evaluating Thought...`, `Selected Top 3 Thoughts:`
+
+### Language Detection Implementation
+
+The ToT system automatically detects language in STEP 0.5:
+1. Analyzes user's problem description
+2. Checks for Korean Hangul characters (U+AC00 to U+D7A3)
+3. Sets output language for all subsequent generations
+4. Passes language context to Codex MCP calls
+
 ## Testing Output Format
 
 Validate output format with:
