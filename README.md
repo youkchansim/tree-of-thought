@@ -38,6 +38,32 @@ Then use it in Claude Code:
 
 Claude Code reads documentation files and implements ToT dynamically. No code execution - purely prompt-based and transparent.
 
+## 🔧 Codex MCP Setup (Optional)
+
+To enable Hybrid mode with Codex MCP for deeper analysis:
+
+### Prerequisites
+```bash
+# 1. Install Codex MCP
+npm install -g @anthropics/codex-mcp
+
+# 2. Login to Codex
+codex login
+
+# 3. Add Codex to Claude Code MCP
+claude mcp add codex --scope user codex mcp
+```
+
+### Verify Installation
+```bash
+# Check if Codex MCP is configured
+claude mcp list
+```
+
+You should see `codex` in the MCP server list.
+
+> **💡 Note**: Without Codex MCP configured, `/tot` runs in Claude-only mode (~55s). With Codex MCP, Hybrid mode provides deeper analysis (~90s).
+
 ## 📖 Example Usage
 
 ### Debug a Memory Leak
