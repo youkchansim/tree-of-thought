@@ -1,0 +1,46 @@
+{
+  "name": "tree-of-thought",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tree of Thought - Systematic problem-solving framework based on Princeton NLP research",
+  "keywords": [
+    "tree-of-thought",
+    "tot",
+    "ai",
+    "llm",
+    "problem-solving",
+    "claude",
+    "reasoning",
+    "princeton-nlp"
+  ],
+  "author": "youkchansim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youkchansim/tree-of-thought.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "lint": "eslint packages --ext .ts,.tsx",
+    "format": "prettier --write \"packages/**/*.{ts,tsx,json,md}\"",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "packageManager": "pnpm@8.12.0"
+}
