@@ -90,9 +90,18 @@ export async function executeBFS(
   }
 
   // No early stopping - return best from final level
+  if (currentThoughts.length === 0) {
+    throw new Error('BFS search failed: no thoughts generated');
+  }
+
   const finalEvaluations = currentThoughts.map(
     (t) => allEvaluations[t.id]
   );
+
+  if (finalEvaluations.length === 0) {
+    throw new Error('BFS search failed: no evaluations found');
+  }
+
   const bestScore = Math.max(...finalEvaluations.map((e) => e.overallScore));
   const bestThought = currentThoughts[
     finalEvaluations.findIndex((e) => e.overallScore === bestScore)

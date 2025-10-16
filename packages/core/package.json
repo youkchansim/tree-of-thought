@@ -29,6 +29,18 @@
   ],
   "author": "youkchansim",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/youkchansim/tree-of-thought.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/youkchansim/tree-of-thought#readme",
+  "bugs": {
+    "url": "https://github.com/youkchansim/tree-of-thought/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "devDependencies": {
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",

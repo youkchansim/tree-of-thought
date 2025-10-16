@@ -111,16 +111,22 @@ export function clearCache(): void {
  * Evaluate a single thought (abstract - requires AI model integration)
  *
  * This is a placeholder that should be implemented with actual AI model calls
+ * For testing, falls back to mock implementation
  */
 export async function evaluateSingleThought(
-  _problem: string,
-  _thought: Thought,
-  _evaluatorModel: 'claude' | 'openai'
+  problem: string,
+  thought: Thought,
+  evaluatorModel: 'claude' | 'openai'
 ): Promise<number> {
   // TODO: Implement actual AI model call
-  // For now, return a placeholder score
-  throw new Error(
-    'evaluateSingleThought must be implemented with AI model integration'
+  // For now, use mock implementation for testing
+  const { mockEvaluateSingleThought } = await import('./mock.js');
+  return mockEvaluateSingleThought(
+    problem,
+    thought.text,
+    thought.model,
+    thought.depth,
+    evaluatorModel
   );
 }
 
@@ -272,15 +278,14 @@ export async function getValueHybrid(
  * Get vote rankings for multiple thoughts (abstract)
  */
 export async function getVoteRankings(
-  _problem: string,
-  _thoughts: Thought[],
-  _evaluatorModel: 'claude' | 'openai'
+  problem: string,
+  thoughts: Thought[],
+  evaluatorModel: 'claude' | 'openai'
 ): Promise<number[]> {
   // TODO: Implement actual AI model call for voting
-  // Should return rankings: [2, 0, 4, 1, 3] (indices in order of preference)
-  throw new Error(
-    'getVoteRankings must be implemented with AI model integration'
-  );
+  // For now, use mock implementation for testing
+  const { mockGetVoteRankings } = await import('./mock.js');
+  return mockGetVoteRankings(problem, thoughts, evaluatorModel);
 }
 
 /**
