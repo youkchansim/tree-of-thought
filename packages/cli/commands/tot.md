@@ -5,20 +5,116 @@ description: "Tree of Thought - Systematic problem solving through structured ex
 
 # /tot - Tree of Thought Framework
 
-Systematic problem-solving framework based on Princeton NLP research. Explores multiple solution paths, evaluates approaches, and finds optimal solutions through structured search.
+**CRITICAL: You MUST follow the OUTPUT_FORMAT.md specification exactly. Display ALL thoughts with FULL content at each level.**
 
-## Quick Start
+Read and strictly follow: `~/.claude/tot/OUTPUT_FORMAT.md`
+
+## Execution Instructions
+
+When this command is invoked, you MUST:
+
+1. **Read OUTPUT_FORMAT.md first** - This defines the exact output structure
+2. **Display complete header** with problem description
+3. **Show ALL thoughts at each level** with full content (not summaries)
+4. **Include evaluation details** for transparency
+5. **Show selection reasoning**
+6. **Present final solution path** with all steps
+
+### Required Output Structure
 
 ```
-/tot "your problem description"
+┌──────────────────────────────────────────────────────────────┐
+│ 🌳 Tree of Thought: [Problem Description]                     │
+└──────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 Level 0: Initial Thoughts (n_generate=5)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Thought 1 [Claude]: [Title]
+┌────────────────────────────────────────────────────────────┐
+│ [FULL detailed content explaining the approach]            │
+│                                                            │
+│ [Specific actions or checks to perform]                   │
+│ • Point 1                                                  │
+│ • Point 2                                                  │
+│ • Point 3                                                  │
+│                                                            │
+│ Verification method: [Command or approach]                 │
+└────────────────────────────────────────────────────────────┘
+
+[... Repeat for ALL 5 thoughts with FULL content]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Level 1: Evaluation (n_evaluate=3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Evaluating Thought 1 [Claude]...
+  Eval 1: 8.5/10 → [Specific reason]
+  Eval 2: 9.0/10 → [Specific reason]
+  Eval 3: 8.7/10 → [Specific reason]
+  ────────────────
+  Average: 8.7/10 ⭐ (Confidence: 95%)
+
+[... Repeat for ALL 5 thoughts]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 Level 2: Selection (n_select=3)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Selected Top 3 Thoughts:
+  ✓ Thought 2 [Codex] - 9.1/10: [Title]
+  ✓ Thought 1 [Claude] - 8.7/10: [Title]
+  ✓ Thought 4 [Codex] - 8.3/10: [Title]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Final Conclusion
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Solution Path (3 steps):
+  1. [9.1] [Title] ✅
+  2. [9.5] [Refined approach] ✅
+  3. [9.7] [Final solution] ✅
+
+Overall Score: 9.4/10 ⭐⭐⭐⭐⭐
+
+[Final verdict and recommendation]
+
+Key Findings:
+- [Finding 1]
+- [Finding 2]
+- [Finding 3]
+
+🚀 [Call to action or next steps]
 ```
 
-The framework will automatically:
-1. Analyze problem type and complexity
-2. Generate multiple solution approaches
-3. Evaluate each approach systematically
-4. Select and expand promising paths
-5. Present the optimal solution
+## Princeton ToT Methodology
+
+### Default Parameters
+
+```yaml
+n_generate: 5        # Generate 5 thoughts per level
+n_evaluate: 3        # Evaluate each thought 3 times
+n_select: 3          # Keep top 3 for next level
+algorithm: BFS       # Breadth-first search
+ratio: "3:2"         # Claude:Codex ratio (3 Claude, 2 Codex)
+max_depth: 3         # Maximum search depth
+confidence: 9.0      # Early stopping threshold
+```
+
+### Hybrid Mode (Claude + Codex)
+
+**Generation:**
+- Claude thoughts (3): Practical, user-focused, quick solutions
+- Codex thoughts (2): Technical depth, algorithm optimization, system design
+
+**Evaluation:**
+- Cross-evaluation: Claude evaluates Codex, Codex evaluates Claude
+- Each thought gets 3 independent evaluations
+- Confidence calculated from evaluation consistency
+
+**When Codex MCP is available:**
+Use Task tool for Codex integration. See `~/.claude/tot/core/codex-mcp-integration.md`
 
 ## Problem Types
 
@@ -30,98 +126,68 @@ The framework automatically detects and handles:
 - **Optimize**: Performance and efficiency improvements
 - **Custom**: Any problem requiring systematic exploration
 
-## How It Works
+## Algorithm Selection
 
-### Princeton ToT Methodology
+### BFS (Breadth-First Search) - Default
+- Explores all options at each level before going deeper
+- Guarantees finding optimal solution within depth limit
+- Best for: Comprehensive exploration, finding multiple solutions
 
-1. **Generation** (n=5)
-   - Generate 5 diverse solution thoughts
-   - Hybrid: Claude (3) + Codex (2) for balanced perspectives
+### DFS (Depth-First Search)
+- Dives deep into promising paths with backtracking
+- Lower memory usage, faster for deep problems
+- Best for: Complex problems requiring deep analysis
 
-2. **Evaluation** (n=3)
-   - Each thought evaluated 3 times independently
-   - Cross-evaluation: Claude evaluates Codex, vice versa
-   - Confidence scoring based on evaluation consistency
+**Selection criteria:**
+- Use BFS for broad exploration (debugging, design choices)
+- Use DFS for deep technical analysis (algorithm optimization)
 
-3. **Selection** (n=3)
-   - Select top 3 thoughts based on scores
-   - Balance quality with diversity
-   - Prepare for next expansion level
+## Evaluation Criteria
 
-4. **Search Algorithm**
-   - **BFS** (Breadth-First): Explore all options level-by-level
-   - **DFS** (Depth-First): Deep dive with backtracking
-   - Early stopping when confidence threshold met
+Each thought is evaluated on 4 dimensions:
 
-## Examples
+1. **Feasibility** (30%): Implementation difficulty
+   - 10: Simple parameter change
+   - 5: Complex algorithm implementation
+   - 1: Requires human intervention
+
+2. **Impact** (30%): Expected improvement
+   - 10: 90-100% improvement
+   - 5: 40-50% improvement
+   - 1: <10% improvement
+
+3. **Risk** (20%): Potential side effects
+   - 10: No side effects
+   - 5: Configuration changes needed
+   - 1: Breaking changes
+
+4. **Complexity** (20%): Testing/validation difficulty
+   - 10: Fully automatable
+   - 5: Manual validation required
+   - 1: Long-term monitoring needed
+
+**Total Score = (Feasibility × 0.3) + (Impact × 0.3) + (Risk × 0.2) + (Complexity × 0.2)**
+
+## Usage Examples
 
 ### Debug a Memory Leak
 ```
-/tot "Production app has memory leak - grows 50MB/hour, happens after user logout"
+/tot "Production app memory grows 50MB/hour after user logout"
 ```
-
-**Expected Flow:**
-- Level 1: Generate 5 hypotheses (event listeners, timers, cache, etc.)
-- Level 2: Expand top 3 hypotheses with specific checks
-- Level 3: Verify most promising solution
-- Result: Actionable fix with root cause identified
 
 ### Design System Architecture
 ```
 /tot "Design real-time notification system for 100k concurrent users"
 ```
 
-**Expected Flow:**
-- Level 1: Technology choices (WebSocket, SSE, polling, etc.)
-- Level 2: Scalability strategies for top choices
-- Level 3: Implementation details and cost analysis
-- Result: Complete architecture with trade-offs
-
 ### Optimize Database Query
 ```
 /tot "Query takes 5 seconds - SELECT with JOIN on 1M+ rows, no indexes"
 ```
 
-**Expected Flow:**
-- Level 1: Identify bottleneck (missing index, query structure, etc.)
-- Level 2: Propose optimizations for each bottleneck
-- Level 3: Validate solutions and estimate impact
-- Result: Specific optimization with expected improvement
-
-## Relationship with @tot/core
-
-**In Claude Code CLI**: This command uses prompt-based ToT execution. Claude AI directly implements the Princeton methodology without library calls.
-
-**For external tools**: Use the `@tot/core` npm package for programmatic access:
-
-```bash
-npm install -g @tot/cli
+### Refactor Legacy Code
 ```
-
-```javascript
-const { executeBFS, DebugTask, MockThoughtGenerator } = require('@tot/core');
-
-const task = new DebugTask();
-const generator = new MockThoughtGenerator();
-const result = await executeBFS(problem, task.config, generator);
-```
-
-**Note**: The library uses mock evaluation for testing. In Claude Code CLI, real AI evaluation provides superior results.
-
-See [@tot/core documentation](https://github.com/youkchansim/tree-of-thought) for advanced usage.
-
-## Configuration
-
-Default parameters (aligned with Princeton ToT paper):
-
-```yaml
-n_generate: 5        # Generate 5 thoughts per level
-n_evaluate: 3        # Evaluate each thought 3 times
-n_select: 3          # Keep top 3 for next level
-algorithm: BFS       # Breadth-first search
-ratio: "3:2"         # Claude:Codex ratio
-max_depth: 6         # Maximum search depth
-confidence: 9.0      # Early stopping threshold
+/tot "Refactor 2000-line UserService.js with 15 dependencies and no tests"
 ```
 
 ## Tips for Best Results
@@ -130,7 +196,7 @@ confidence: 9.0      # Early stopping threshold
    - ❌ "app is slow"
    - ✅ "API endpoint /users takes 3s - 10k users, no caching"
 
-2. **Include Details**: Error messages, metrics, requirements
+2. **Include Metrics**: Error messages, performance data, requirements
    - ❌ "fix this bug"
    - ✅ "NullPointerException in UserService.login() after OAuth update"
 
@@ -138,13 +204,13 @@ confidence: 9.0      # Early stopping threshold
    - ❌ "improve performance"
    - ✅ "reduce response time from 3s to <500ms without adding servers"
 
-## Technical Details
+## Technical References
 
-- **Search Algorithms**: BFS for breadth, DFS for depth
-- **Evaluation Methods**: Value (scoring) and Vote (ranking)
-- **Selection Strategies**: Greedy, Sample, Hybrid
-- **Model Integration**: Claude for practicality, Codex for technical depth
-- **Caching**: Evaluation results cached for efficiency
+- **Core Algorithms**: `~/.claude/tot/core/bfs-implementation.md`, `dfs-implementation.md`
+- **Evaluation Methods**: `~/.claude/tot/core/evaluation-concepts.md`
+- **Task System**: `~/.claude/tot/core/task-system.md`
+- **Codex Integration**: `~/.claude/tot/core/codex-mcp-integration.md`
+- **Output Format**: `~/.claude/tot/OUTPUT_FORMAT.md` **(MUST READ FIRST)**
 
 ## Limitations
 
@@ -155,11 +221,11 @@ confidence: 9.0      # Early stopping threshold
 
 ## Support
 
-- Documentation: https://github.com/youkchansim/tree-of-thought
-- Issues: https://github.com/youkchansim/tree-of-thought/issues
-- Examples: See `docs/EXAMPLES.md` in repository
+- **Documentation**: https://github.com/youkchansim/tree-of-thought
+- **Issues**: https://github.com/youkchansim/tree-of-thought/issues
+- **Examples**: See `~/.claude/tot/examples/` for real-world cases
 
 ---
 
-**Made possible by Princeton NLP's Tree of Thought research**
-[Paper: Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601)
+**Princeton NLP Research**
+[Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601)
