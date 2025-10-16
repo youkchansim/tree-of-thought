@@ -26,7 +26,24 @@ Tree of Thought (ToT) is a framework that enables AI models to solve complex pro
 
 ## 🚀 Quick Start
 
-### Installation
+### For Claude Code Users (Recommended)
+
+Install the `/tot` command directly to Claude Code:
+
+```bash
+npm install -g @tot/cli
+```
+
+Then use it in Claude Code:
+```
+/tot "your problem description"
+```
+
+See [@tot/cli README](./packages/cli/README.md) for details.
+
+### For Library Users
+
+#### Installation
 
 ```bash
 # Clone the repository
@@ -40,7 +57,7 @@ pnpm install
 pnpm build
 ```
 
-### Basic Usage
+#### Basic Usage
 
 ```typescript
 import {
