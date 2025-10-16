@@ -1,34 +1,22 @@
 # Tree of Thought (ToT)
 
-A TypeScript implementation of systematic problem-solving framework based on Princeton NLP research.
+Systematic problem-solving framework for Claude Code CLI based on Princeton NLP research.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)
+[![npm](https://img.shields.io/npm/v/tree-of-thought-cli)](https://www.npmjs.com/package/tree-of-thought-cli)
 
 ## 🌳 What is Tree of Thought?
 
-Tree of Thought (ToT) is a framework that enables AI models to solve complex problems through systematic exploration of solution spaces. Based on [Princeton NLP's research](https://arxiv.org/abs/2305.10601), it allows language models to:
+Tree of Thought (ToT) enables AI to solve complex problems through systematic exploration of solution spaces. Based on [Princeton NLP's research](https://arxiv.org/abs/2305.10601), it:
 
-- **Generate multiple solution paths** at each decision point
-- **Evaluate and compare** different approaches systematically
-- **Backtrack and explore alternatives** when paths don't work
-- **Find optimal solutions** through structured search
-
-## ✨ Features
-
-- 🎯 **Princeton-Aligned**: Faithful implementation of the original ToT paper
-- 🤖 **Claude Code CLI Optimized**: Task tool-based Codex MCP integration
-- 📊 **Multiple Search Algorithms**: BFS, DFS with backtracking support
-- 🔧 **Flexible Evaluation**: Value, Vote, and Hybrid evaluation methods
-- 📦 **Pure Library**: Extensible interface design
-- 🧪 **Fully Typed**: TypeScript strict mode support
+- **Generates multiple solution paths** at each decision point
+- **Evaluates and compares** different approaches systematically
+- **Backtracks and explores alternatives** when paths don't work
+- **Finds optimal solutions** through structured search
 
 ## 🚀 Quick Start
 
-### For Claude Code Users (Recommended)
-
-Install the `/tot` command directly to Claude Code:
+Install the `/tot` command for Claude Code CLI:
 
 ```bash
 npm install -g tree-of-thought-cli
@@ -39,147 +27,129 @@ Then use it in Claude Code:
 /tot "your problem description"
 ```
 
-See [CLI README](./packages/cli/README.md) for details.
-
 ### What Gets Installed
 
-After installation, you'll have:
-- `/tot` command in Claude Code CLI
-- Core documentation in `~/.claude/tot/core/`
+- `/tot` command in `~/.claude/commands/`
+- Algorithm guides in `~/.claude/tot/core/`
 - Problem templates in `~/.claude/tot/templates/`
 - Usage examples in `~/.claude/tot/examples/`
 
 ### How It Works
 
-Claude Code reads the documentation files and implements the Tree of Thought algorithm dynamically. No library code is executed - everything is prompt-based and transparent.
+Claude Code reads documentation files and implements ToT dynamically. No code execution - purely prompt-based and transparent.
 
-## 📖 Documentation
+## 📖 Example Usage
 
-- **[Command Reference](./packages/cli/commands/tot.md)** - `/tot` command usage and examples
-- **[Core Algorithms](./docs/guide/core/)** - BFS, DFS, evaluation, selection algorithms
-- **[Problem Templates](./docs/guide/templates/)** - Debug, refactor, design templates
-- **[Usage Examples](./docs/examples/)** - Real-world problem-solving examples
-- **[Output Format](./docs/OUTPUT_FORMAT.md)** - Detailed output format specification
-
-## 🏗️ Architecture
-
+### Debug a Memory Leak
 ```
-tree-of-thought/
-├── packages/
-│   └── cli/                    # CLI installation package
-│       ├── commands/tot.md     # Command definition
-│       └── scripts/install.js  # Installation script
-├── docs/
-│   ├── guide/
-│   │   ├── core/              # Algorithm documentation (15+ files)
-│   │   └── templates/         # Problem templates
-│   ├── examples/              # Usage examples
-│   └── OUTPUT_FORMAT.md       # Output specification
-└── README.md
+/tot "Production app memory grows 50MB/hour after user logout"
 ```
 
-## 🎯 How It Works
-
-1. **Problem Analysis**: Understand the problem and choose appropriate task type
-2. **Thought Generation**: Generate multiple solution approaches (typically 5)
-3. **Evaluation**: Score each thought using Value or Vote method (3 evaluations each)
-4. **Selection**: Choose top thoughts (typically top 3) to explore further
-5. **Tree Traversal**: Expand selected thoughts using BFS, DFS, or Best-First
-6. **Solution**: Return the optimal path through the thought tree
-
-### Example: Debugging a Memory Leak
-
+**Output:**
 ```
-Problem: "Memory leak in production"
-    ↓
 Level 1: Generate 5 hypotheses
 ├─ [8.5] Unclosed event listeners
 ├─ [9.1] Timer not cleared ⭐
 ├─ [7.9] Cache not released
-├─ [6.2] Global variable accumulation
-└─ [7.5] Closure circular reference
-    ↓
-Level 2: Expand top 3 (Timer, Event, Cache)
+...
+
+Level 2: Expand top 3
 ├─ Timer → [9.5] Search for setInterval ⭐
 ├─ Timer → [8.8] Search for setTimeout
-├─ Event → [8.2] Check event listeners
-    ↓
-Level 3: Verify solution
-└─ [9.7] Search entire codebase for uncleaned timers ⭐
-    ↓
+...
+
 Solution: Found 3 setInterval calls without cleanup
 ```
 
-## 🔧 Configuration
-
-Princeton ToT Parameters:
-
-```typescript
-interface ToTArgs {
-  // Generation parameters
-  nGenerate: number;        // Number of thoughts to generate per step
-  nEvaluate: number;        // Number of evaluations per thought
-  nSelect: number;          // Number of thoughts to select for next step
-
-  // Search strategy
-  algorithm: 'BFS' | 'DFS' | 'best-first';
-  methodGenerate: 'propose' | 'sample';
-  methodEvaluate: 'value' | 'vote';
-  methodSelect: 'greedy' | 'sample' | 'hybrid';
-
-  // AI model ratio (Claude:Codex)
-  ratio: string;            // e.g., "3:2", "5:5"
-
-  // Optimization options
-  maxDepth: number;
-  confidenceThreshold: number;
-  enableCache: boolean;
-  enableParallel: boolean;
-}
+### Design System Architecture
 ```
+/tot "Design real-time notification system for 100k concurrent users"
+```
+
+### Optimize Performance
+```
+/tot "Database query takes 5 seconds on 1M+ rows with JOINs"
+```
+
+## 🎯 Core Methodology
+
+Based on Princeton ToT paper parameters:
+
+1. **Generate** 5 diverse solution approaches (n_generate=5)
+2. **Evaluate** each approach 3 times independently (n_evaluate=3)
+3. **Select** top 3 for further exploration (n_select=3)
+4. **Search** using BFS or DFS with early stopping
+5. **Return** optimal solution path
+
+### Hybrid Mode (Claude + Codex)
+
+When Codex MCP is available:
+- **Claude**: Practical solutions, quick fixes, user experience
+- **Codex**: Deep technical analysis, algorithm optimization
+- **Ratio**: Configurable (e.g., "5:5", "7:3", "3:7")
 
 ## 📊 Algorithm Comparison
 
-| Algorithm | Characteristics | Memory | Speed | Optimality |
-|-----------|----------------|--------|-------|------------|
-| **BFS** | Level-by-level exploration | High | Medium | Guaranteed within depth limit |
-| **DFS** | Depth-first + Backtracking | Low | Fast | With early stopping |
-| **Best-First** | Heuristic-based | Medium | Fast | Heuristic-dependent |
+| Algorithm | Best For | Memory | Speed |
+|-----------|----------|--------|-------|
+| **BFS** | Comprehensive exploration | High | Medium |
+| **DFS** | Deep analysis with backtracking | Low | Fast |
+
+## 📖 Documentation
+
+- [Command Reference](./packages/cli/commands/tot.md) - Full `/tot` usage guide
+- [Core Algorithms](./docs/guide/core/) - BFS, DFS, evaluation methods
+- [Problem Templates](./docs/guide/templates/) - Debug, refactor, design
+- [Usage Examples](./docs/examples/) - Real-world scenarios
+- [Output Format](./docs/OUTPUT_FORMAT.md) - Transparent thought display
+
+## 🏗️ Project Structure
+
+```
+tree-of-thought/
+├── packages/cli/              # npm package
+│   ├── commands/tot.md        # Command definition
+│   └── scripts/install.js     # Installation script
+└── docs/
+    ├── guide/
+    │   ├── core/              # 15+ algorithm guides
+    │   └── templates/         # 6 problem templates
+    ├── examples/              # 6 usage examples
+    └── OUTPUT_FORMAT.md
+```
 
 ## 🤝 Contributing
 
-We welcome contributions! Please open an issue or pull request.
+Contributions welcome! Open an issue or pull request.
 
-### Development
+### Local Development
 
 ```bash
-# Clone repository
 git clone https://github.com/youkchansim/tree-of-thought.git
-cd tree-of-thought
+cd tree-of-thought/packages/cli
 
-# Test locally (without publishing)
-cd packages/cli
+# Test locally
 npm link
 
 # The /tot command will be available in Claude Code
 # Make changes to documentation in docs/guide/
 
-# When ready to publish
+# Publish updates
 npm version patch
 npm publish
 ```
 
 ## 📄 License
 
-MIT License - See [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) file.
 
 ## 🙏 Acknowledgments
 
-This project is based on Princeton NLP's Tree of Thought research:
-- [Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601)
-- [Princeton NLP GitHub Repository](https://github.com/princeton-nlp/tree-of-thought-llm)
+Based on Princeton NLP's Tree of Thought research:
+- [Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601) (Yao et al., 2023)
+- [Princeton NLP Repository](https://github.com/princeton-nlp/tree-of-thought-llm)
 
-## 📧 Contact
+## 📧 Support
 
-- GitHub Issues: [tree-of-thought/issues](https://github.com/youkchansim/tree-of-thought/issues)
-- Author: [@youkchansim](https://github.com/youkchansim)
+- **Issues**: [github.com/youkchansim/tree-of-thought/issues](https://github.com/youkchansim/tree-of-thought/issues)
+- **Author**: [@youkchansim](https://github.com/youkchansim)
