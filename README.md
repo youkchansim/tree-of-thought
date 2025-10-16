@@ -214,7 +214,3 @@ This project is based on Princeton NLP's Tree of Thought research:
 
 - GitHub Issues: [tree-of-thought/issues](https://github.com/youkchansim/tree-of-thought/issues)
 - Author: [@youkchansim](https://github.com/youkchansim)
-
----
-
-**Made with ❤️ for Claude Code CLI**
