@@ -1,6 +1,6 @@
 {
   "name": "tree-of-thought-cli",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Tree of Thought CLI - Install /tot command for Claude Code",
   "scripts": {
     "postinstall": "node scripts/install.js"

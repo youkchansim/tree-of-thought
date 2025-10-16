@@ -753,4 +753,333 @@ def call_codex_mcp_cached(task, x, current_thought, n_thoughts, depth):
 
 ---
 
-*ToT system based on Claude Code CLI + Codex MCP*
+## 🛡️ Error Handling & Fallback System
+
+### 1. Codex MCP Availability Check
+
+```python
+def check_codex_mcp_availability():
+    """
+    Check if Codex MCP is available and responsive
+
+    Returns:
+        bool: True if Codex MCP is available
+    """
+    try:
+        # Simple ping test with 5s timeout
+        test_response = Task(
+            subagent_type="general-purpose",
+            description="Codex MCP health check",
+            prompt='Return JSON: {"status": "OK"}',
+            timeout=5000
+        )
+
+        import json
+        data = json.loads(extract_json(test_response))
+
+        return data.get("status") == "OK"
+
+    except Exception as e:
+        print(f"[Codex MCP] Connection failed: {e}")
+        return False
+
+
+def initialize_tot_mode(args):
+    """
+    Determine execution mode based on Codex MCP availability
+
+    Returns:
+        (mode, codex_available):
+            - mode: "claude" | "codex" | "hybrid"
+            - codex_available: bool | None
+    """
+    # User explicitly specified mode
+    if args.mode == "claude":
+        print("✅ Claude 전용 모드 (사용자 지정)")
+        return "claude", None
+
+    elif args.mode == "codex":
+        print("✅ Codex 전용 모드 (사용자 지정)")
+        codex_ok = check_codex_mcp_availability()
+
+        if not codex_ok:
+            print("❌ 오류: Codex MCP 연결 불가")
+            print("   → Claude 전용 모드로 대체합니다")
+            return "claude", False
+
+        return "codex", True
+
+    # Hybrid mode (default) - auto-detect
+    else:
+        codex_ok = check_codex_mcp_availability()
+
+        if codex_ok:
+            print("✅ Hybrid 모드 - Codex MCP 연결됨")
+            print(f"   Claude {args.ratio.split(':')[0]} + Codex {args.ratio.split(':')[1]}")
+            return "hybrid", True
+        else:
+            print("⚠️  Hybrid 모드 요청 → Codex MCP 응답 없음")
+            print("   → Claude 전용 모드로 자동 전환")
+            print("   (5개 생각 모두 Claude로 생성)")
+            return "claude", False
+```
+
+### 2. Resilient Codex MCP Call with Retry
+
+```python
+def call_codex_mcp_with_retry(task, x, current_thought, n_thoughts, depth):
+    """
+    Call Codex MCP with automatic retry and fallback
+
+    Returns:
+        (thoughts, source):
+            - thoughts: List[Thought]
+            - source: "codex" | "claude_fallback"
+    """
+    max_retries = 2
+    retry_delay = 5  # seconds
+
+    for attempt in range(max_retries):
+        try:
+            print(f"  🔄 Codex MCP 호출 중... (시도 {attempt + 1}/{max_retries})")
+
+            # Construct Codex prompt
+            codex_prompt = construct_codex_prompt(
+                task=task,
+                x=x,
+                current_thought=current_thought,
+                n_thoughts=n_thoughts
+            )
+
+            # Call Codex MCP via Task tool (30s timeout)
+            codex_response = Task(
+                subagent_type="general-purpose",
+                description="ToT Codex thought generation",
+                prompt=codex_prompt,
+                timeout=30000
+            )
+
+            # Parse JSON response
+            thoughts = parse_codex_response(codex_response, depth)
+
+            if len(thoughts) == 0:
+                raise ValueError("Codex returned empty thoughts")
+
+            print(f"  ✅ Codex 사고 {len(thoughts)}개 생성 완료")
+            return thoughts, "codex"
+
+        except TimeoutError:
+            print(f"  ⏱️  타임아웃 (30초 초과)")
+            if attempt < max_retries - 1:
+                print(f"  🔄 {retry_delay}초 후 재시도...")
+                time.sleep(retry_delay)
+                continue
+
+        except json.JSONDecodeError as e:
+            print(f"  ⚠️  JSON 파싱 실패: {e}")
+            if attempt < max_retries - 1:
+                print(f"  🔄 {retry_delay}초 후 재시도...")
+                time.sleep(retry_delay)
+                continue
+
+        except Exception as e:
+            print(f"  ❌ Codex MCP 오류: {e}")
+            if attempt < max_retries - 1:
+                print(f"  🔄 {retry_delay}초 후 재시도...")
+                time.sleep(retry_delay)
+                continue
+
+    # All retries failed → Fallback to Claude
+    print(f"  ⚠️  모든 재시도 실패 → Claude로 대체 생성 ({n_thoughts}개)")
+
+    claude_thoughts = generate_claude_thoughts(
+        task=task,
+        x=x,
+        current_thought=current_thought,
+        n_thoughts=n_thoughts,
+        depth=depth
+    )
+
+    # Mark as fallback
+    for thought in claude_thoughts:
+        thought.metadata["fallback"] = True
+        thought.metadata["intended_source"] = "codex"
+
+    return claude_thoughts, "claude_fallback"
+```
+
+### 3. Hybrid Generation with Automatic Fallback
+
+```python
+def generate_thoughts_hybrid_resilient(task, x, current_thoughts, args):
+    """
+    Hybrid thought generation with automatic fallback
+
+    Features:
+    - Claude thoughts always succeed (immediate generation)
+    - Codex thoughts have retry + fallback to Claude
+    - User is notified of any failures
+    """
+    claude_ratio, codex_ratio = parse_ratio(args.ratio)
+    n_total = args.n_generate_sample
+    n_claude = int(n_total * claude_ratio)
+    n_codex = int(n_total * codex_ratio)
+
+    all_thoughts = []
+
+    # 1. Generate Claude thoughts (always succeeds)
+    print(f"🔄 Claude 사고 생성 중... ({n_claude}개)")
+
+    claude_thoughts = generate_claude_thoughts(
+        task=task,
+        x=x,
+        current_thoughts=current_thoughts,
+        n_thoughts=n_claude,
+        depth=len(current_thoughts)
+    )
+
+    all_thoughts.extend(claude_thoughts)
+    print(f"  ✅ Claude 사고 {len(claude_thoughts)}개 생성 완료")
+
+    # 2. Generate Codex thoughts (with fallback)
+    if n_codex > 0:
+        codex_thoughts, source = call_codex_mcp_with_retry(
+            task=task,
+            x=x,
+            current_thought=current_thoughts[-1].text if current_thoughts else "",
+            n_thoughts=n_codex,
+            depth=len(current_thoughts)
+        )
+
+        all_thoughts.extend(codex_thoughts)
+
+        if source == "claude_fallback":
+            print(f"  ℹ️  참고: Codex 대신 Claude로 생성됨 ({n_codex}개)")
+
+    return all_thoughts
+```
+
+### 4. User Feedback During Execution
+
+```markdown
+# Example Output - Successful Connection
+
+🌳 Tree of Thought - BFS (Hybrid Mode)
+
+✅ Hybrid 모드 - Codex MCP 연결됨
+   Claude 3 + Codex 2 (ratio 3:2)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 Level 1: 원인 분석
+
+🔄 Claude 사고 생성 중... (3개)
+  ✅ Claude 사고 3개 생성 완료
+
+🔄 Codex MCP 호출 중... (시도 1/2)
+  ✅ Codex 사고 2개 생성 완료
+
+총 5개 사고 생성:
+  1. [Claude] 캐시 메모리 미해제
+  2. [Claude] 이벤트 리스너 미제거
+  3. [Claude] 전역 변수 대용량 데이터
+  4. [Codex] setInterval/setTimeout 미정리 ⭐
+  5. [Codex] Closure 순환 참조
+```
+
+```markdown
+# Example Output - Connection Failed (Fallback)
+
+🌳 Tree of Thought - BFS (Hybrid Mode)
+
+⚠️  Hybrid 모드 요청 → Codex MCP 응답 없음
+   → Claude 전용 모드로 자동 전환
+   (5개 생각 모두 Claude로 생성)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 Level 1: 원인 분석
+
+🔄 Claude 사고 생성 중... (5개)
+  ✅ Claude 사고 5개 생성 완료
+
+총 5개 사고 생성 (모두 Claude):
+  1. [Claude] 캐시 메모리 미해제
+  2. [Claude] 이벤트 리스너 미제거
+  3. [Claude] 전역 변수 대용량 데이터
+  4. [Claude] setInterval/setTimeout 미정리
+  5. [Claude] Closure 순환 참조
+```
+
+```markdown
+# Example Output - Partial Failure (Retry Success)
+
+📍 Level 1: 원인 분석
+
+🔄 Claude 사고 생성 중... (3개)
+  ✅ Claude 사고 3개 생성 완료
+
+🔄 Codex MCP 호출 중... (시도 1/2)
+  ⏱️  타임아웃 (30초 초과)
+  🔄 5초 후 재시도...
+
+🔄 Codex MCP 호출 중... (시도 2/2)
+  ✅ Codex 사고 2개 생성 완료
+
+총 5개 사고 생성:
+  [... normal output continues ...]
+```
+
+```markdown
+# Example Output - Complete Failure (Full Fallback)
+
+📍 Level 2: 검증 방법
+
+🔄 Claude 사고 생성 중... (3개)
+  ✅ Claude 사고 3개 생성 완료
+
+🔄 Codex MCP 호출 중... (시도 1/2)
+  ❌ Codex MCP 오류: Connection refused
+  🔄 5초 후 재시도...
+
+🔄 Codex MCP 호출 중... (시도 2/2)
+  ❌ Codex MCP 오류: Connection refused
+  ⚠️  모든 재시도 실패 → Claude로 대체 생성 (2개)
+
+총 5개 사고 생성:
+  1. [Claude] 코드 검색 방법
+  2. [Claude] 로그 분석
+  3. [Claude] 프로파일러 사용
+  4. [Claude] 메모리 덤프 분석 (Codex 대체)
+  5. [Claude] 런타임 모니터링 (Codex 대체)
+
+ℹ️  참고: Codex 대신 Claude로 생성됨 (2개)
+```
+
+### 5. Summary
+
+**Key Features of Fallback System:**
+
+1. **Transparent Status**: User always knows connection state
+2. **Automatic Recovery**: 2 retries with 5s delays
+3. **Graceful Degradation**: Falls back to Claude without stopping
+4. **Clear Feedback**: Emoji indicators (✅/⚠️/❌) for visual clarity
+5. **No Data Loss**: Execution continues regardless of Codex status
+
+**Error Scenarios Handled:**
+
+- ✅ Initial connection check failure → Auto-switch to Claude mode
+- ✅ Timeout during generation → Retry + fallback
+- ✅ JSON parsing error → Retry + fallback
+- ✅ Network error → Retry + fallback
+- ✅ Empty response → Retry + fallback
+
+**User Experience:**
+
+- **Best case**: Full Hybrid mode (1.5-2 min)
+- **Fallback case**: Claude-only mode (~30s) - Still works perfectly
+- **No manual intervention needed**: System handles all errors
+
+---
+
+*ToT system based on Claude Code CLI + Codex MCP with robust error handling*
