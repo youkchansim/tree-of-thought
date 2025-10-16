@@ -10,14 +10,12 @@ export * from './types/index.js';
 // Export evaluation functions
 export * from './evaluation/index.js';
 
-// Export algorithms (to be implemented)
-// export * from './algorithms/index.js';
+// Export selection algorithms
+export * from './selection/index.js';
 
-// Export selection algorithms (to be implemented)
-// export * from './selection/index.js';
+// Export algorithms
+export * from './algorithms/bfs.js';
+export * from './algorithms/dfs.js';
 
-// Export tasks (to be implemented)
-// export * from './tasks/index.js';
-
-// Export utilities (to be implemented)
-// export * from './utils/index.js';
+// Export tasks
+export * from './tasks/index.js';
