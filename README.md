@@ -103,6 +103,7 @@ class ClaudeCodeThoughtGenerator implements ThoughtGenerator {
 ## 📖 Documentation
 
 - **[Core API Reference](./packages/core/README.md)** - @tot/core API documentation
+- **[Output Format](./docs/OUTPUT_FORMAT.md)** - Detailed output format specification
 - **[Examples](./docs/EXAMPLES.md)** - Real-world usage examples
 - **[Architecture](./docs/ARCHITECTURE.md)** - Design structure and principles
 - **[Integration Guide](./docs/INTEGRATION.md)** - Claude Code CLI integration
