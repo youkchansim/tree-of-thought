@@ -88,9 +88,15 @@ The framework automatically detects and handles:
 - Level 3: Validate solutions and estimate impact
 - Result: Specific optimization with expected improvement
 
-## Integration with @tot/core
+## Relationship with @tot/core
 
-This command uses the `@tot/core` library for execution. For programmatic usage:
+**In Claude Code CLI**: This command uses prompt-based ToT execution. Claude AI directly implements the Princeton methodology without library calls.
+
+**For external tools**: Use the `@tot/core` npm package for programmatic access:
+
+```bash
+npm install -g @tot/cli
+```
 
 ```javascript
 const { executeBFS, DebugTask, MockThoughtGenerator } = require('@tot/core');
@@ -99,6 +105,8 @@ const task = new DebugTask();
 const generator = new MockThoughtGenerator();
 const result = await executeBFS(problem, task.config, generator);
 ```
+
+**Note**: The library uses mock evaluation for testing. In Claude Code CLI, real AI evaluation provides superior results.
 
 See [@tot/core documentation](https://github.com/youkchansim/tree-of-thought) for advanced usage.
 
