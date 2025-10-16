@@ -1,6 +1,6 @@
-# Tree of Thought
+# Tree of Thought (ToT)
 
-> Systematic problem-solving framework based on Princeton NLP research
+A TypeScript implementation of systematic problem-solving framework based on Princeton NLP research.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
@@ -18,78 +18,94 @@ Tree of Thought (ToT) is a framework that enables AI models to solve complex pro
 ## ✨ Features
 
 - 🎯 **Princeton-Aligned**: Faithful implementation of the original ToT paper
-- 🤖 **Hybrid AI Mode**: Combines Claude + OpenAI for diverse perspectives
-- 📊 **Multiple Search Algorithms**: BFS, DFS, and Best-First search
-- 🔧 **Flexible Evaluation**: Value-based and vote-based thought evaluation
-- 📦 **Dual Package**: Use as a library or CLI tool
-- 🧪 **Fully Typed**: Complete TypeScript support
+- 🤖 **Claude Code CLI Optimized**: Task tool-based Codex MCP integration
+- 📊 **Multiple Search Algorithms**: BFS, DFS with backtracking support
+- 🔧 **Flexible Evaluation**: Value, Vote, and Hybrid evaluation methods
+- 📦 **Pure Library**: Extensible interface design
+- 🧪 **Fully Typed**: TypeScript strict mode support
 
 ## 🚀 Quick Start
 
 ### Installation
 
 ```bash
-# Install globally
-npm install -g @tot/cli
+# Clone the repository
+git clone https://github.com/youkchansim/tree-of-thought.git
+cd tree-of-thought
 
-# Or use with npx
-npx @tot/cli debug "memory leak in production"
+# Install dependencies
+pnpm install
+
+# Build
+pnpm build
 ```
 
 ### Basic Usage
 
-```bash
-# Debug a problem
-tot debug "app startup takes over 10 seconds"
+```typescript
+import {
+  MockThoughtGenerator,
+  executeBFS,
+  DebugTask
+} from '@tot/core';
 
-# Plan a refactoring
-tot refactor "PaymentService needs restructuring"
+// 1. Configure task
+const debugTask = new DebugTask();
+const config = debugTask.config;
 
-# Design architecture
-tot design "real-time chat system with 100k users"
+// 2. Create thought generator
+const generator = new MockThoughtGenerator();
 
-# Custom problem solving
-tot custom "optimize database query performance"
+// 3. Define problem
+const problem = "Find the root cause of memory leak in production";
+
+// 4. Execute BFS search
+const result = await executeBFS(problem, config, generator);
+
+// 5. Get results
+console.log('Best solution:', result.bestThought.text);
+console.log('Search path:', result.path);
+console.log('Total thoughts generated:', result.allThoughts.length);
 ```
 
-### Programmatic Usage
+### Claude Code CLI Integration
+
+See `packages/core/src/generators/claude-code.example.ts` for Task tool integration.
 
 ```typescript
-import { ToT, BFSSearch } from '@tot/core';
+import { ThoughtGenerator } from '@tot/core';
 
-const tot = new ToT({
-  n_generate: 5,    // Generate 5 thoughts per level
-  n_evaluate: 3,    // Evaluate each thought 3 times
-  n_select: 3,      // Keep top 3 thoughts
-  algorithm: 'BFS', // Use breadth-first search
-});
-
-const result = await tot.solve('Your problem description here');
-console.log(result.solution);
+class ClaudeCodeThoughtGenerator implements ThoughtGenerator {
+  async generate(problem, currentThoughts, depth, args) {
+    // Integrate with Codex MCP using Task tool
+    // See claude-code.example.ts for implementation details
+  }
+}
 ```
 
 ## 📖 Documentation
 
-- **[Getting Started](./docs/guide/core/tot-framework.md)** - Introduction to ToT concepts
-- **[Search Algorithms](./docs/guide/core/search-algorithms.md)** - BFS, DFS, Best-First comparison
-- **[Evaluation Methods](./docs/guide/core/evaluation-concepts.md)** - How thoughts are scored
-- **[API Reference](./docs/api/)** - Complete API documentation
-- **[Examples](./docs/examples/)** - Real-world usage examples
+- **[Core API Reference](./packages/core/README.md)** - @tot/core API documentation
+- **[Examples](./docs/EXAMPLES.md)** - Real-world usage examples
+- **[Architecture](./docs/ARCHITECTURE.md)** - Design structure and principles
+- **[Integration Guide](./docs/INTEGRATION.md)** - Claude Code CLI integration
 
 ## 🏗️ Architecture
 
 ```
 tree-of-thought/
 ├── packages/
-│   ├── core/          # Core ToT library
-│   │   ├── algorithms/    # BFS, DFS, Best-First
-│   │   ├── evaluation/    # Value, Vote, Hybrid
-│   │   ├── selection/     # Greedy, Sample
-│   │   └── tasks/         # Debug, Refactor, Design
-│   └── cli/           # Command-line interface
-├── docs/
-│   ├── guide/         # Documentation
-│   └── examples/      # Usage examples
+│   └── core/                    # Core ToT library
+│       ├── src/
+│       │   ├── types/          # Type system and data structures
+│       │   ├── evaluation/     # Evaluation functions (Value, Vote, Hybrid)
+│       │   ├── selection/      # Selection algorithms (Greedy, Sample, etc.)
+│       │   ├── generators/     # ThoughtGenerator interface
+│       │   ├── algorithms/     # Search algorithms (BFS, DFS)
+│       │   └── tasks/          # Task system (Debug, Refactor, etc.)
+│       └── dist/               # Build output
+├── original-tot/               # Original documentation backup
+└── docs/                       # Usage documentation
 ```
 
 ## 🎯 How It Works
@@ -126,41 +142,39 @@ Solution: Found 3 setInterval calls without cleanup
 
 ## 🔧 Configuration
 
-Customize ToT behavior through configuration:
+Princeton ToT Parameters:
 
 ```typescript
-{
-  // Princeton parameters
-  n_generate: 5,        // Thoughts per level
-  n_evaluate: 3,        // Evaluations per thought
-  n_select: 3,          // Thoughts to keep
+interface ToTArgs {
+  // Generation parameters
+  nGenerate: number;        // Number of thoughts to generate per step
+  nEvaluate: number;        // Number of evaluations per thought
+  nSelect: number;          // Number of thoughts to select for next step
 
-  // Search algorithm
-  algorithm: 'BFS',     // 'BFS' | 'DFS' | 'best-first'
+  // Search strategy
+  algorithm: 'BFS' | 'DFS' | 'best-first';
+  methodGenerate: 'propose' | 'sample';
+  methodEvaluate: 'value' | 'vote';
+  methodSelect: 'greedy' | 'sample' | 'hybrid';
 
-  // Evaluation method
-  method_evaluate: 'value',  // 'value' | 'vote'
+  // AI model ratio (Claude:Codex)
+  ratio: string;            // e.g., "3:2", "5:5"
 
-  // Selection strategy
-  method_select: 'greedy',   // 'greedy' | 'sample'
-
-  // Model configuration
-  model_ratio: {
-    claude: 3,          // Claude generates 3 thoughts
-    openai: 2,          // OpenAI generates 2 thoughts
-  }
+  // Optimization options
+  maxDepth: number;
+  confidenceThreshold: number;
+  enableCache: boolean;
+  enableParallel: boolean;
 }
 ```
 
-## 📊 Performance
+## 📊 Algorithm Comparison
 
-Compared to traditional problem-solving approaches:
-
-| Metric | Traditional | ToT | Improvement |
-|--------|------------|-----|-------------|
-| Complex Bug Resolution | 4 hours | 1.5 hours | **62.5%** |
-| Refactoring Success Rate | 40% | 85% | **112.5%** |
-| Architecture Options | 2-3 | 15-20 | **600%** |
+| Algorithm | Characteristics | Memory | Speed | Optimality |
+|-----------|----------------|--------|-------|------------|
+| **BFS** | Level-by-level exploration | High | Medium | Guaranteed within depth limit |
+| **DFS** | Depth-first + Backtracking | Low | Fast | With early stopping |
+| **Best-First** | Heuristic-based | Medium | Fast | Heuristic-dependent |
 
 ## 🤝 Contributing
 
@@ -188,21 +202,19 @@ pnpm dev
 
 ## 📄 License
 
-MIT © [youkchansim](https://github.com/youkchansim)
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- [Princeton NLP](https://github.com/princeton-nlp/tree-of-thought-llm) for the original ToT research
-- [Anthropic](https://www.anthropic.com/) for Claude AI
-- [OpenAI](https://openai.com/) for GPT models
-
-## 📚 References
-
+This project is based on Princeton NLP's Tree of Thought research:
 - [Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601)
 - [Princeton NLP GitHub Repository](https://github.com/princeton-nlp/tree-of-thought-llm)
 
+## 📧 Contact
+
+- GitHub Issues: [tree-of-thought/issues](https://github.com/youkchansim/tree-of-thought/issues)
+- Author: [@youkchansim](https://github.com/youkchansim)
+
 ---
 
-**Status**: 🚧 Under Active Development
-
-This project is in early development. APIs may change. Contributions and feedback are welcome!
+**Made with ❤️ for Claude Code CLI**
