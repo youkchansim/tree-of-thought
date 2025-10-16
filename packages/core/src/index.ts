@@ -7,11 +7,11 @@
 // Export all types
 export * from './types/index.js';
 
+// Export evaluation functions
+export * from './evaluation/index.js';
+
 // Export algorithms (to be implemented)
 // export * from './algorithms/index.js';
-
-// Export evaluation functions (to be implemented)
-// export * from './evaluation/index.js';
 
 // Export selection algorithms (to be implemented)
 // export * from './selection/index.js';
