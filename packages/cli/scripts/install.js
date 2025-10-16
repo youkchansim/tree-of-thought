@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * @tot/cli Installation Script
+ * tree-of-thought-cli Installation Script
  *
  * Installs /tot command and documentation to ~/.claude directory
  * This runs automatically after npm install
@@ -37,8 +37,8 @@ function copyDirectory(source, target) {
     const targetPath = path.join(target, entry.name);
 
     if (entry.isDirectory()) {
-      // Skip node_modules
-      if (entry.name === 'node_modules') continue;
+      // Skip node_modules and hidden directories
+      if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
 
       // Recursively copy subdirectories
       fileCount += copyDirectory(sourcePath, targetPath);
@@ -57,51 +57,44 @@ function main() {
     log('\n🌳 Installing Tree of Thought framework...', 'cyan');
 
     const homeDir = os.homedir();
-    const packageRoot = path.join(__dirname, '..', '..');
+    // When installed via npm, __dirname is: <npm-prefix>/lib/node_modules/tree-of-thought-cli/scripts
+    // So packageRoot should be one level up
+    const packageRoot = path.join(__dirname, '..');
 
     // Installation tasks
     const tasks = [
       {
         name: 'Command',
-        source: path.join(packageRoot, 'cli', 'commands'),
+        source: path.join(packageRoot, 'commands'),
         target: path.join(homeDir, '.claude', 'commands'),
-        pattern: '*.md'
       },
       {
         name: 'Core Documentation',
-        source: path.join(packageRoot, '..', 'docs', 'guide', 'core'),
+        source: path.join(packageRoot, 'docs', 'guide', 'core'),
         target: path.join(homeDir, '.claude', 'tot', 'core'),
-        pattern: '*.md'
       },
       {
         name: 'Templates',
-        source: path.join(packageRoot, '..', 'docs', 'guide', 'templates'),
+        source: path.join(packageRoot, 'docs', 'guide', 'templates'),
         target: path.join(homeDir, '.claude', 'tot', 'templates'),
-        pattern: '*.md'
       },
       {
         name: 'Examples',
-        source: path.join(packageRoot, '..', 'docs', 'examples'),
+        source: path.join(packageRoot, 'docs', 'examples'),
         target: path.join(homeDir, '.claude', 'tot', 'examples'),
-        pattern: '*.md'
       }
     ];
 
     let totalInstalled = 0;
-    let totalUpdated = 0;
 
     // Execute each task
     for (const task of tasks) {
       log(`\n📁 Installing ${task.name}...`, 'cyan');
-      log(`   Source: ${task.source}`, 'cyan');
 
       if (!fs.existsSync(task.source)) {
-        log(`   ⚠️  Source not found, skipping...`, 'yellow');
+        log(`   ⚠️  Source not found: ${task.source}`, 'yellow');
         continue;
       }
-
-      // Create target directory
-      fs.mkdirSync(task.target, { recursive: true });
 
       // Copy files
       const fileCount = copyDirectory(task.source, task.target);
@@ -116,27 +109,20 @@ function main() {
 
     // Copy root documentation
     log(`\n📁 Installing root documentation...`, 'cyan');
-    const docsRoot = path.join(packageRoot, '..', 'docs');
     const totRoot = path.join(homeDir, '.claude', 'tot');
+    fs.mkdirSync(totRoot, { recursive: true });
 
-    const rootDocs = ['OUTPUT_FORMAT.md'];
+    const rootDocs = [
+      { file: 'OUTPUT_FORMAT.md', source: path.join(packageRoot, 'docs', 'OUTPUT_FORMAT.md') },
+      { file: 'README.md', source: path.join(packageRoot, 'README.md') }
+    ];
+
     for (const doc of rootDocs) {
-      const sourcePath = path.join(docsRoot, doc);
-      const targetPath = path.join(totRoot, doc);
-
-      if (fs.existsSync(sourcePath)) {
-        fs.copyFileSync(sourcePath, targetPath);
-        log(`   ✓ Installed ${doc}`, 'green');
+      if (fs.existsSync(doc.source)) {
+        fs.copyFileSync(doc.source, path.join(totRoot, doc.file));
+        log(`   ✓ Installed ${doc.file}`, 'green');
         totalInstalled++;
       }
-    }
-
-    // Copy README
-    const readmePath = path.join(packageRoot, '..', 'README.md');
-    if (fs.existsSync(readmePath)) {
-      fs.copyFileSync(readmePath, path.join(totRoot, 'README.md'));
-      log(`   ✓ Installed README.md`, 'green');
-      totalInstalled++;
     }
 
     // Summary
