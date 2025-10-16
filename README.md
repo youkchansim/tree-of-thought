@@ -81,12 +81,92 @@ Based on Princeton ToT paper parameters:
 4. **Search** using BFS or DFS with early stopping
 5. **Return** optimal solution path
 
-### Hybrid Mode (Claude + Codex)
+## ⚡ Execution Modes
 
-When Codex MCP is available:
-- **Claude**: Practical solutions, quick fixes, user experience
-- **Codex**: Deep technical analysis, algorithm optimization
-- **Ratio**: Configurable (e.g., "5:5", "7:3", "3:7")
+### Performance Comparison
+
+| Mode | Codex MCP | Execution Time | AI Distribution | Use Case |
+|------|-----------|----------------|-----------------|----------|
+| **Claude-Only** (`/tot -c`) | Any | ~55s | Claude 100% | Quick, practical solutions |
+| **Hybrid** (`/tot`) | ❌ Not configured | ~55s | Claude 100% | Same as Claude-Only |
+| **Hybrid** (`/tot`) | ✅ Configured | ~90s | Claude 60% + Codex 40% | Deep technical analysis |
+
+> **🔑 Key Point**: Codex MCP not configured? Both `/tot` and `/tot -c` perform identically (~55s).
+
+### Mode Details
+
+#### 🚀 Claude-Only Mode
+```bash
+/tot -c "your problem"           # Force Claude-only
+/tot debug -c                    # Debug with Claude
+/tot refactor --claude           # Refactor with Claude
+```
+
+**Characteristics:**
+- **Speed**: ~55 seconds
+- **Strengths**: Fast, practical, proven patterns
+- **Best for**: Quick fixes, standard problems, time-critical situations
+
+#### 🤖 Hybrid Mode (Claude + Codex)
+```bash
+/tot "your problem"              # Default mode
+/tot debug                       # Debug with both AIs
+/tot refactor                    # Refactor with both AIs
+/tot --ratio 3:7                 # 30% Claude, 70% Codex
+```
+
+**Characteristics:**
+- **Speed**: ~90 seconds (with Codex MCP configured)
+- **Strengths**: Deep analysis, algorithm optimization, multiple perspectives
+- **Best for**: Complex algorithms, performance optimization, novel problems
+
+**AI Distribution:**
+- **Claude** (60%): Practical solutions, quick fixes, user experience
+- **Codex** (40%): Deep technical analysis, algorithm optimization
+- **Ratio**: Configurable via `--ratio` flag (e.g., "5:5", "7:3", "3:7")
+
+### Problem Type Examples
+
+#### Debug Problems
+```bash
+/tot debug "Memory leak grows 50MB/hour"
+/tot -c debug "React component infinite re-render"
+```
+
+#### Refactoring
+```bash
+/tot refactor "PaymentService has 500 lines, needs modularization"
+/tot --ratio 7:3 refactor "Extract algorithm to separate module"
+```
+
+#### Design & Architecture
+```bash
+/tot design "Real-time notification system for 100k users"
+/tot -c design "API versioning strategy"
+```
+
+#### Performance Optimization
+```bash
+/tot optimize "Database query takes 5s on 1M+ rows"
+/tot --ratio 3:7 optimize "Reduce bundle size from 2MB to 500KB"
+```
+
+#### Custom Problems
+```bash
+/tot "How to implement distributed cache invalidation?"
+/tot -c "Best approach for handling file uploads in React?"
+```
+
+### When to Choose Which Mode
+
+| Scenario | Recommended Mode | Reason |
+|----------|------------------|--------|
+| Quick bug fix | Claude-Only (`-c`) | Faster, sufficient for common issues |
+| Algorithm optimization | Hybrid with Codex ratio high | Deep technical analysis needed |
+| Standard refactoring | Claude-Only (`-c`) | Proven patterns work well |
+| Novel architecture | Hybrid (default) | Multiple perspectives valuable |
+| Time-critical | Claude-Only (`-c`) | 35 seconds faster |
+| Research-oriented | Hybrid with Codex ratio high | Cutting-edge approaches |
 
 ## 📊 Algorithm Comparison
 
