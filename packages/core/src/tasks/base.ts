@@ -2,8 +2,7 @@
  * Base Task Interface for Tree of Thoughts
  */
 
-import type { TaskConfig, ToTArgs, Thought } from '../types/index.js';
-import { createTaskConfig, createToTArgs } from '../types/index.js';
+import type { TaskConfig } from '../types/index.js';
 
 /**
  * Abstract base task

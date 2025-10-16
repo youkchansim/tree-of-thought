@@ -1,18 +1,23 @@
 /**
  * DFS (Depth-First Search) Algorithm for Tree of Thoughts
+ *
+ * Features:
+ * - Depth-first exploration with backtracking
+ * - Memory efficient (explores one path at a time)
+ * - Early stopping when confidence threshold is met
+ * - Tracks best solution across all explored paths
  */
 
 import type {
   Thought,
   Evaluation,
   SearchResult,
-  ToTArgs,
   TaskConfig,
 } from '../types/index.js';
 import { createSearchResult, extractPath } from '../types/index.js';
 import { Evaluator } from '../evaluation/index.js';
 import { createSelector } from '../selection/index.js';
-import type { ThoughtGenerator } from './bfs.js';
+import type { ThoughtGenerator } from '../generators/index.js';
 
 /**
  * Execute DFS search
@@ -33,7 +38,7 @@ export async function executeDFS(
   let bestScore = -Infinity;
 
   /**
-   * Recursive DFS helper
+   * Recursive DFS helper with backtracking
    */
   async function dfsRecursive(
     currentThought: Thought | null,
@@ -41,6 +46,11 @@ export async function executeDFS(
   ): Promise<void> {
     // Depth limit check
     if (depth >= args.maxDepth) {
+      return;
+    }
+
+    // Early stopping check (global)
+    if (bestScore >= args.confidenceThreshold) {
       return;
     }
 
@@ -68,16 +78,28 @@ export async function executeDFS(
       }
     });
 
-    // Early stopping check
+    // Early stopping check (after evaluation)
     if (bestScore >= args.confidenceThreshold) {
       return;
     }
 
-    // Select single best thought and continue
-    const selectedIndices = selector.select(evaluations, newThoughts, 1);
+    // Select top-k thoughts for exploration (backtracking)
+    // Use nSelect to determine how many branches to explore
+    const selectedIndices = selector.select(
+      evaluations,
+      newThoughts,
+      Math.min(args.nSelect, newThoughts.length)
+    );
 
-    if (selectedIndices.length > 0) {
-      const selected = newThoughts[selectedIndices[0]];
+    // Explore each selected thought (backtracking happens automatically)
+    for (const index of selectedIndices) {
+      const selected = newThoughts[index];
+
+      // Early stopping check before diving deeper
+      if (bestScore >= args.confidenceThreshold) {
+        return;
+      }
+
       await dfsRecursive(selected, depth + 1);
     }
   }
@@ -89,9 +111,12 @@ export async function executeDFS(
     throw new Error('DFS failed to find any solution');
   }
 
+  // TypeScript type narrowing after null check
+  const finalThought: Thought = bestThought;
+
   return createSearchResult({
-    bestThought,
-    path: extractPath(allThoughts, bestThought.id),
+    bestThought: finalThought,
+    path: extractPath(allThoughts, finalThought.id),
     allThoughts,
     evaluations: allEvaluations,
     metadata: {

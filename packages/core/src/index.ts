@@ -13,6 +13,9 @@ export * from './evaluation/index.js';
 // Export selection algorithms
 export * from './selection/index.js';
 
+// Export generators
+export * from './generators/index.js';
+
 // Export algorithms
 export * from './algorithms/bfs.js';
 export * from './algorithms/dfs.js';

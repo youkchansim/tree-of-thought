@@ -6,27 +6,12 @@ import type {
   Thought,
   Evaluation,
   SearchResult,
-  ToTArgs,
   TaskConfig,
 } from '../types/index.js';
-import {
-  createThought,
-  createSearchResult,
-  extractPath,
-  getClaudeCount,
-  getCodexCount,
-} from '../types/index.js';
+import { createSearchResult, extractPath } from '../types/index.js';
 import { Evaluator } from '../evaluation/index.js';
 import { createSelector } from '../selection/index.js';
-
-export interface ThoughtGenerator {
-  generate(
-    problem: string,
-    currentThoughts: Thought[],
-    depth: number,
-    args: ToTArgs
-  ): Promise<Thought[]>;
-}
+import type { ThoughtGenerator } from '../generators/index.js';
 
 /**
  * Execute BFS search

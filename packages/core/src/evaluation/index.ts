@@ -8,7 +8,7 @@
  */
 
 import type { Thought, Evaluation, ToTArgs } from '../types/index.js';
-import { createEvaluation, addScore } from '../types/index.js';
+import { createEvaluation } from '../types/index.js';
 
 // ============================================================================
 // Types
@@ -113,9 +113,9 @@ export function clearCache(): void {
  * This is a placeholder that should be implemented with actual AI model calls
  */
 export async function evaluateSingleThought(
-  problem: string,
-  thought: Thought,
-  evaluatorModel: 'claude' | 'openai'
+  _problem: string,
+  _thought: Thought,
+  _evaluatorModel: 'claude' | 'openai'
 ): Promise<number> {
   // TODO: Implement actual AI model call
   // For now, return a placeholder score
@@ -272,9 +272,9 @@ export async function getValueHybrid(
  * Get vote rankings for multiple thoughts (abstract)
  */
 export async function getVoteRankings(
-  problem: string,
-  thoughts: Thought[],
-  evaluatorModel: 'claude' | 'openai'
+  _problem: string,
+  _thoughts: Thought[],
+  _evaluatorModel: 'claude' | 'openai'
 ): Promise<number[]> {
   // TODO: Implement actual AI model call for voting
   // Should return rankings: [2, 0, 4, 1, 3] (indices in order of preference)
