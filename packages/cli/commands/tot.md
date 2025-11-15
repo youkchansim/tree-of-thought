@@ -13,10 +13,31 @@ Read and strictly follow: `~/.claude/tot/OUTPUT_FORMAT.md`
 
 **Select execution mode based on user request:**
 
-1. **User forced Claude-Only** (`-c` flag)? → Go to **Step 1A**
-2. **Otherwise** → Attempt **Hybrid Mode** (Step 1B)
-   - Codex MCP call happens automatically in Phase 2
-   - Auto-fallback to Claude if Codex fails
+### Mode Detection Logic
+
+```yaml
+Single-AI Modes:
+  -c flag: Claude-Only → Step 1A (6 thoughts)
+  -g flag: Gemini-Only → Step 1A (6 thoughts, all via Gemini MCP)
+  -x flag: Codex-Only → Step 1A (6 thoughts, all via Codex MCP)
+
+Hybrid Modes (2 AIs):
+  --hybrid cg: Claude + Gemini (3:3)
+  --hybrid cx: Claude + Codex (3:3)
+  --hybrid gx: Gemini + Codex (3:3)
+
+Multi-AI Mode (DEFAULT - 3 AIs):
+  No flags or --multi: Claude + Gemini + Codex (2:2:2) → Step 1C
+  --ratio X:Y:Z: Custom ratio (e.g., 3:2:1, 1:2:3)
+```
+
+### Decision Tree
+
+1. **User forced Single-AI** (`-c`, `-g`, or `-x`)? → Go to **Step 1A**
+2. **User requested Hybrid** (`--hybrid cg/cx/gx`)? → Go to **Step 1B**
+3. **Otherwise (default)** → Attempt **Multi-AI Mode** (Step 1C)
+   - All MCP calls happen in parallel (Phase 2)
+   - Auto-fallback to available AIs if any fails
    - No pre-check needed!
 
 ---
@@ -189,7 +210,169 @@ Return ONLY a JSON object in this exact format:
 
 ---
 
-## STEP 2: Required Output Structure (Both Modes)
+### STEP 1C: Multi-AI Mode Execution (Claude + Gemini + Codex) 🚀
+
+**DEFAULT MODE - Maximum diversity with 3 AI perspectives**
+
+**🚀 CRITICAL: TRIPLE PARALLEL EXECUTION - Start ALL simultaneously!**
+
+**PHASE 1: Parallel Thought Generation (Claude + Gemini + Codex simultaneously)**
+
+1. **IMMEDIATELY generate 2 Claude thoughts** using self-response
+   - Output them as soon as generated (don't wait for MCPs)
+   - Mark each as [Claude]
+   - Focus: **Practical, user-focused solutions with proven patterns**
+
+2. **AT THE SAME TIME, call mcp__gemini-cli__ask-gemini tool** for 2 system design thoughts
+   - ⚠️ **MANDATORY**: You MUST actually call the mcp__gemini-cli__ask-gemini tool
+   - Do NOT skip this step
+   - Do NOT simulate Gemini responses yourself
+   - Focus: **System architecture and creative structural approaches**
+
+   **Exact tool call format:**
+   ```
+   mcp__gemini-cli__ask-gemini(
+       prompt="""You are a system architecture and design expert. Analyze this problem and generate 2 distinct architectural solution approaches.
+
+# Problem
+[Insert user's actual problem description here]
+
+# Your Task - SYSTEM DESIGN FOCUS
+Generate 2 different architectural approaches focusing on:
+- System design and structure
+- Design patterns and architectural patterns
+- Creative and innovative solutions
+- Scalability and maintainability perspectives
+- Component relationships and data flow
+
+For each approach, provide:
+1. Approach name (architectural perspective)
+2. Core design concept
+3. System structure details
+4. Component interactions
+5. Scalability and maintenance considerations
+
+# Output Requirements
+Return ONLY a JSON object in this exact format:
+{
+  "thoughts": [
+    {
+      "id": "gemini_1",
+      "text": "First architectural approach full explanation (detailed - minimum 5-6 sentences)",
+      "reasoning": "System design rationale and expected benefits"
+    },
+    {
+      "id": "gemini_2",
+      "text": "Second architectural approach full explanation (detailed - minimum 5-6 sentences)",
+      "reasoning": "System design rationale and expected benefits"
+    }
+  ]
+}
+
+**CRITICAL**:
+- Return ONLY valid JSON with no additional text before or after
+- **Write all text and reasoning in [DETECTED_LANGUAGE]**:
+  - If problem is in Korean → Korean (한국어)
+  - If problem is in English → English
+- Provide detailed architectural depth in each thought
+- Focus on SYSTEM DESIGN, not low-level optimization
+       """
+   )
+   ```
+
+3. **ALSO AT THE SAME TIME, call mcp__codex__codex tool** for 2 technical optimization thoughts
+   - ⚠️ **MANDATORY**: You MUST actually call the mcp__codex__codex tool
+   - Do NOT skip this step
+   - Focus: **Algorithm optimization and performance analysis**
+
+   **Exact tool call format:**
+   ```
+   mcp__codex__codex(
+       prompt="""You are a performance optimization and algorithm expert. Analyze this problem and generate 2 distinct technical optimization approaches.
+
+# Problem
+[Insert user's actual problem description here]
+
+# Your Task - OPTIMIZATION FOCUS
+Generate 2 different technical optimization approaches focusing on:
+- Algorithm complexity and performance
+- Low-level technical optimization
+- Profiling and measurement strategies
+- Resource utilization improvements
+- Implementation efficiency
+
+For each approach, provide:
+1. Approach name (optimization perspective)
+2. Core optimization technique
+3. Algorithm/performance details
+4. Expected performance impact
+5. Implementation complexity considerations
+
+# Output Requirements
+Return ONLY a JSON object in this exact format:
+{
+  "thoughts": [
+    {
+      "id": "codex_1",
+      "text": "First optimization approach full explanation (detailed - minimum 5-6 sentences)",
+      "reasoning": "Technical rationale and expected performance impact"
+    },
+    {
+      "id": "codex_2",
+      "text": "Second optimization approach full explanation (detailed - minimum 5-6 sentences)",
+      "reasoning": "Technical rationale and expected performance impact"
+    }
+  ]
+}
+
+**CRITICAL**:
+- Return ONLY valid JSON with no additional text before or after
+- **Write all text and reasoning in [DETECTED_LANGUAGE]**:
+  - If problem is in Korean → Korean (한국어)
+  - If problem is in English → English
+- Provide detailed technical depth in each thought
+- Focus on PERFORMANCE and ALGORITHMS, not architecture
+       """
+   )
+   ```
+
+4. **When MCPs respond**, parse the JSON and output all thoughts
+   - Mark Gemini thoughts as [Gemini]
+   - Mark Codex thoughts as [Codex]
+   - If Gemini fails: Generate 2 additional Claude thoughts as fallback (mark as [Claude])
+   - If Codex fails: Generate 2 additional Claude thoughts as fallback (mark as [Claude])
+
+**PHASE 2: Evaluation**
+
+5. **Evaluate all 6 thoughts** (2 Claude + 2 Gemini/fallback + 2 Codex/fallback)
+6. **Select top 3-4** for further exploration
+7. **Present final solution path** with all steps
+
+**⚠️ Self-Validation Checkpoint (BEFORE evaluation):**
+- [ ] Did I generate 2 Claude thoughts and output them?
+- [ ] Did I ACTUALLY CALL mcp__gemini-cli__ask-gemini tool (not simulate)?
+- [ ] Did I ACTUALLY CALL mcp__codex__codex tool (not simulate)?
+- [ ] Did I receive and parse 2 Gemini thoughts (or fallback)?
+- [ ] Did I receive and parse 2 Codex thoughts (or fallback)?
+- [ ] Total thought count = 6?
+- [ ] Are thoughts properly marked: [Claude], [Gemini], [Codex]?
+
+**If ANY checkbox is unchecked → STOP and fix before continuing!**
+
+**Performance:**
+- Expected time: 15-20 seconds (parallel execution)
+- Claude: ~5s, Gemini: ~10s, Codex: ~15s (all run in parallel)
+- Total = max(5s, 10s, 15s) = ~15s + parsing = ~20s
+
+**Diversity Benefits:**
+- **Claude**: Proven, practical approaches
+- **Gemini**: Innovative architectural designs
+- **Codex**: Deep technical optimizations
+- **Combined**: 3 completely different perspectives for optimal solution
+
+---
+
+## STEP 2: Required Output Structure (All Modes)
 
 ### Required Output Structure
 
@@ -199,10 +382,10 @@ Return ONLY a JSON object in this exact format:
 └──────────────────────────────────────────────────────────────┘
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 Level 0: Initial Thoughts (n_generate=5)
+📍 Level 0: Initial Thoughts (n_generate=5 for Hybrid, 6 for Multi-AI)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Thought 1 [Claude]: [Title]
+Thought 1 [Claude]: [Title - Practical Approach]
 ┌────────────────────────────────────────────────────────────┐
 │ [FULL detailed content explaining the approach]            │
 │                                                            │
@@ -214,7 +397,22 @@ Thought 1 [Claude]: [Title]
 │ Verification method: [Command or approach]                 │
 └────────────────────────────────────────────────────────────┘
 
-[... Repeat for ALL 5 thoughts with FULL content]
+Thought 2 [Claude]: [Title - Balanced Approach]
+[... FULL content ...]
+
+Thought 3 [Gemini]: [Title - Architectural Approach]
+[... FULL content ...]
+
+Thought 4 [Gemini]: [Title - System Design Approach]
+[... FULL content ...]
+
+Thought 5 [Codex]: [Title - Optimization Approach]
+[... FULL content ...]
+
+Thought 6 [Codex]: [Title - Performance Approach]
+[... FULL content ...]
+
+[... Display ALL thoughts with FULL content]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 Level 1: Evaluation (n_evaluate=3)
@@ -227,16 +425,32 @@ Evaluating Thought 1 [Claude]...
   ────────────────
   Average: 8.7/10 ⭐ (Confidence: 95%)
 
-[... Repeat for ALL 5 thoughts]
+Evaluating Thought 2 [Claude]...
+  Average: 8.3/10 ⭐
+
+Evaluating Thought 3 [Gemini]...
+  Average: 9.2/10 ⭐⭐
+
+Evaluating Thought 4 [Gemini]...
+  Average: 8.8/10 ⭐
+
+Evaluating Thought 5 [Codex]...
+  Average: 9.5/10 ⭐⭐⭐
+
+Evaluating Thought 6 [Codex]...
+  Average: 8.1/10 ⭐
+
+[... Evaluate ALL thoughts]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 Level 2: Selection (n_select=3)
+🎯 Level 2: Selection (n_select=3-4)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Selected Top 3 Thoughts:
-  ✓ Thought 2 [Codex] - 9.1/10: [Title]
-  ✓ Thought 1 [Claude] - 8.7/10: [Title]
-  ✓ Thought 4 [Codex] - 8.3/10: [Title]
+Selected Top 3-4 Thoughts (Multi-AI diversity):
+  ✓ Thought 5 [Codex] - 9.5/10: [Performance Optimization Title]
+  ✓ Thought 3 [Gemini] - 9.2/10: [Architectural Design Title]
+  ✓ Thought 1 [Claude] - 8.7/10: [Practical Approach Title]
+  ✓ Thought 4 [Gemini] - 8.8/10: [System Design Title] (if 4 selected)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ Final Conclusion
@@ -264,28 +478,80 @@ Key Findings:
 ### Default Parameters
 
 ```yaml
-n_generate: 5        # Generate 5 thoughts per level
+# Multi-AI Mode (Default)
+n_generate: 6        # Generate 6 thoughts per level
 n_evaluate: 3        # Evaluate each thought 3 times
-n_select: 3          # Keep top 3 for next level
+n_select: 3-4        # Keep top 3-4 for next level
 algorithm: BFS       # Breadth-first search
-ratio: "3:2"         # Claude:Codex ratio (3 Claude, 2 Codex)
+ratio: "2:2:2"       # Claude:Gemini:Codex ratio (2 each)
 max_depth: 3         # Maximum search depth
 confidence: 9.0      # Early stopping threshold
+
+# Hybrid Mode (2 AIs)
+ratio: "3:3"         # Equal split between 2 AIs
+n_generate: 6        # Total 6 thoughts
+
+# Single-AI Mode
+n_generate: 6        # All from one AI
 ```
 
-### Hybrid Mode (Claude + Codex)
+### Multi-AI Mode (Claude + Gemini + Codex) - DEFAULT 🚀
 
 **Generation:**
-- Claude thoughts (3): Practical, user-focused, quick solutions
-- Codex thoughts (2): Technical depth, algorithm optimization, system design
+- **Claude thoughts (2)**: Practical, user-focused, proven patterns
+- **Gemini thoughts (2)**: System architecture, creative design, innovative solutions
+- **Codex thoughts (2)**: Algorithm optimization, performance analysis, technical depth
 
 **Evaluation:**
-- Cross-evaluation: Claude evaluates Codex, Codex evaluates Claude
 - Each thought gets 3 independent evaluations
+- Cross-AI diversity scoring for better selection
 - Confidence calculated from evaluation consistency
 
-**When Codex MCP is available:**
-Use `mcp__codex__codex` tool for direct Codex integration. See `~/.claude/tot/core/codex-mcp-integration.md`
+**Benefits:**
+- **Maximum Diversity**: 3 completely different AI perspectives
+- **Balanced Solutions**: Practical + Creative + Optimal
+- **Best Coverage**: User experience + Architecture + Performance
+
+**When to use Multi-AI:**
+- Complex problems requiring multiple perspectives
+- Architecture + Performance optimization needed
+- Want to explore maximum solution space
+
+### Hybrid Mode (2 AIs)
+
+**Available Combinations:**
+- `--hybrid cg`: Claude + Gemini (Practical + Architecture)
+- `--hybrid cx`: Claude + Codex (Practical + Performance) - Classic
+- `--hybrid gx`: Gemini + Codex (Architecture + Performance)
+
+**Generation:**
+- Each AI generates 3 thoughts (total 6)
+- Focused expertise from 2 complementary perspectives
+
+**When to use Hybrid:**
+- Focus on 2 specific aspects (e.g., architecture + performance)
+- Faster execution than Multi-AI (one less MCP call)
+- Clear trade-off between two approaches needed
+
+### Single-AI Mode
+
+**Available Options:**
+- `-c`: Claude-Only (6 practical thoughts)
+- `-g`: Gemini-Only (6 architectural thoughts)
+- `-x`: Codex-Only (6 optimization thoughts)
+
+**When to use Single-AI:**
+- Quick analysis needed
+- Specific expertise required (e.g., only performance)
+- MCP services unavailable
+
+### MCP Integration
+
+**Multi-AI requires:**
+- `mcp__gemini-cli__ask-gemini` tool for Gemini integration
+- `mcp__codex__codex` tool for Codex integration
+- See `~/.claude/tot/core/gemini-mcp-integration.md`
+- See `~/.claude/tot/core/codex-mcp-integration.md`
 
 ### Codex MCP Connection Status
 
@@ -377,25 +643,73 @@ Each thought is evaluated on 4 dimensions:
 
 ## Usage Examples
 
-### Debug a Memory Leak
-```
+### Multi-AI Mode (Default - Recommended) 🚀
+
+```bash
+# Default: Claude + Gemini + Codex (2:2:2)
 /tot "Production app memory grows 50MB/hour after user logout"
+
+# Custom ratio (Claude focused)
+/tot --ratio 3:2:1 "Design real-time notification system for 100k users"
+
+# Custom ratio (Performance focused)
+/tot --ratio 1:1:4 "Query takes 5s - SELECT with JOIN on 1M+ rows"
 ```
 
-### Design System Architecture
-```
-/tot "Design real-time notification system for 100k concurrent users"
+**Output:** 6 thoughts - 2 practical (Claude), 2 architectural (Gemini), 2 optimized (Codex)
+
+### Hybrid Mode (2 AIs)
+
+```bash
+# Claude + Gemini: Practical + Architecture
+/tot --hybrid cg "Refactor 2000-line UserService.js"
+
+# Claude + Codex: Practical + Performance (Classic)
+/tot --hybrid cx "Optimize image processing pipeline"
+
+# Gemini + Codex: Architecture + Performance
+/tot --hybrid gx "Design high-throughput message queue"
 ```
 
-### Optimize Database Query
-```
-/tot "Query takes 5 seconds - SELECT with JOIN on 1M+ rows, no indexes"
+**Output:** 6 thoughts - 3 from each AI
+
+### Single-AI Mode
+
+```bash
+# Claude-only: Quick practical solutions
+/tot -c "Fix authentication bug in login flow"
+
+# Gemini-only: System architecture focus
+/tot -g "Design microservices architecture"
+
+# Codex-only: Performance optimization focus
+/tot -x "Reduce API latency from 500ms to 50ms"
 ```
 
-### Refactor Legacy Code
+**Output:** 6 thoughts - all from selected AI
+
+### Real-World Examples
+
+#### Example 1: Memory Leak (Multi-AI)
+```bash
+/tot "메모리 누수 - 1시간에 50MB 증가, 로그아웃 후 발생"
 ```
-/tot "Refactor 2000-line UserService.js with 15 dependencies and no tests"
+- Claude: 이벤트 리스너 미제거, 캐시 정리 누락
+- Gemini: 메모리 관리 아키텍처 개선, 리소스 라이프사이클 설계
+- Codex: 힙 프로파일링, GC 최적화, 메모리 할당 분석
+
+#### Example 2: System Design (Hybrid: Gemini + Codex)
+```bash
+/tot --hybrid gx "Design video streaming service for 1M concurrent users"
 ```
+- Gemini: CDN architecture, microservices design, scalability patterns
+- Codex: Adaptive bitrate algorithms, caching strategies, load distribution
+
+#### Example 3: Quick Fix (Claude-only)
+```bash
+/tot -c "NullPointerException in PaymentService after DB upgrade"
+```
+- Fast, practical debugging steps without architectural overhead
 
 ## Tips for Best Results
 

@@ -38,11 +38,17 @@ Then use it in Claude Code:
 
 Claude Code reads documentation files and implements ToT dynamically. No code execution - purely prompt-based and transparent.
 
-## 🔧 Codex MCP Setup (Optional)
+## 🔧 MCP Setup (Optional but Recommended)
 
-To enable Hybrid mode with Codex MCP for deeper analysis:
+Enable **Multi-AI mode** with Gemini and Codex MCP for maximum diversity and deeper analysis:
 
-### Prerequisites
+### Gemini MCP (Architecture & Design Focus)
+```bash
+# Install Gemini MCP - provides system architecture expertise
+claude mcp add gemini-cli -s user -- npx -y gemini-mcp-tool
+```
+
+### Codex MCP (Performance & Optimization Focus)
 ```bash
 # 1. Install Codex MCP
 npm install -g @anthropics/codex-mcp
@@ -56,13 +62,17 @@ claude mcp add codex --scope user codex mcp
 
 ### Verify Installation
 ```bash
-# Check if Codex MCP is configured
+# Check if MCPs are configured
 claude mcp list
 ```
 
-You should see `codex` in the MCP server list.
+You should see `gemini-cli` and `codex` in the MCP server list.
 
-> **💡 Note**: Without Codex MCP configured, `/tot` runs in Claude-only mode (~55s). With Codex MCP, Hybrid mode provides deeper analysis (~90s).
+> **💡 Note**:
+> - **No MCPs**: `/tot` runs in Claude-only mode (~15s, 6 thoughts)
+> - **Gemini only**: Claude + Gemini Hybrid mode (~20s)
+> - **Codex only**: Claude + Codex Hybrid mode (~25s)
+> - **Both MCPs**: Multi-AI mode (~20s, maximum diversity) ✨
 
 ## 📖 Example Usage
 
@@ -99,57 +109,95 @@ Solution: Found 3 setInterval calls without cleanup
 
 ## 🎯 Core Methodology
 
-Based on Princeton ToT paper parameters:
+Based on Princeton ToT paper with Multi-AI enhancements:
 
-1. **Generate** 5 diverse solution approaches (n_generate=5)
+1. **Generate** 6 diverse solution approaches (n_generate=6)
+   - Multi-AI: 2 Claude + 2 Gemini + 2 Codex
+   - Hybrid: 3 from each of 2 AIs
+   - Single: 6 from one AI
 2. **Evaluate** each approach 3 times independently (n_evaluate=3)
-3. **Select** top 3 for further exploration (n_select=3)
+3. **Select** top 3-4 for further exploration (n_select=3-4)
 4. **Search** using BFS or DFS with early stopping
 5. **Return** optimal solution path
+
+### AI Role Differentiation
+
+- **Claude**: Practical, user-focused, proven patterns
+- **Gemini**: Innovative architecture, creative system design
+- **Codex**: Algorithm optimization, performance analysis
+
+This prevents thought overlap and maximizes solution diversity.
 
 ## ⚡ Execution Modes
 
 ### Performance Comparison
 
-| Mode | Codex MCP | Execution Time | AI Distribution | Use Case |
-|------|-----------|----------------|-----------------|----------|
-| **Claude-Only** (`/tot -c`) | Any | ~55s | Claude 100% | Quick, practical solutions |
-| **Hybrid** (`/tot`) | ❌ Not configured | ~55s | Claude 100% | Same as Claude-Only |
-| **Hybrid** (`/tot`) | ✅ Configured | ~90s | Claude 60% + Codex 40% | Deep technical analysis |
+| Mode | MCPs Required | Execution Time | AI Distribution | Use Case |
+|------|---------------|----------------|-----------------|----------|
+| **Multi-AI** (Default) | Gemini + Codex | ~20s | Claude 33% + Gemini 33% + Codex 33% | Maximum diversity ✨ |
+| **Hybrid CG** (`--hybrid cg`) | Gemini | ~18s | Claude 50% + Gemini 50% | Practical + Architecture |
+| **Hybrid CX** (`--hybrid cx`) | Codex | ~22s | Claude 50% + Codex 50% | Practical + Performance |
+| **Hybrid GX** (`--hybrid gx`) | Gemini + Codex | ~20s | Gemini 50% + Codex 50% | Architecture + Performance |
+| **Claude-Only** (`-c`) | None | ~15s | Claude 100% | Quick, practical solutions |
+| **Gemini-Only** (`-g`) | Gemini | ~15s | Gemini 100% | Architecture focus only |
+| **Codex-Only** (`-x`) | Codex | ~18s | Codex 100% | Performance focus only |
 
-> **🔑 Key Point**: Codex MCP not configured? Both `/tot` and `/tot -c` perform identically (~55s).
+> **🔑 Key Point**: MCPs not configured? Auto-fallback to Claude-only mode (~15s). All modes work without MCPs!
 
 ### Mode Details
 
-#### 🚀 Claude-Only Mode
+#### 🌟 Multi-AI Mode (Claude + Gemini + Codex) - DEFAULT
+
 ```bash
-/tot -c "your problem"           # Force Claude-only
-/tot debug -c                    # Debug with Claude
-/tot refactor --claude           # Refactor with Claude
+/tot "your problem"              # Default: 3 AI perspectives
+/tot --ratio 2:2:2               # Equal distribution (default)
+/tot --ratio 3:2:1               # Claude-focused
+/tot --ratio 1:2:3               # Performance-focused
 ```
 
 **Characteristics:**
-- **Speed**: ~55 seconds
-- **Strengths**: Fast, practical, proven patterns
-- **Best for**: Quick fixes, standard problems, time-critical situations
+- **Speed**: ~20 seconds (all AIs run in parallel)
+- **Thoughts**: 6 total (2 from each AI)
+- **Strengths**: Maximum diversity, balanced perspectives, comprehensive coverage
+- **Best for**: Complex problems requiring multiple viewpoints
 
-#### 🤖 Hybrid Mode (Claude + Codex)
+**AI Roles:**
+- **Claude** (33%): Practical solutions, proven patterns, quick wins
+- **Gemini** (33%): System architecture, creative design, scalability
+- **Codex** (33%): Algorithm optimization, performance tuning, profiling
+
+**Auto-Fallback**: If Gemini or Codex unavailable, Claude generates replacement thoughts automatically.
+
+#### 🤝 Hybrid Mode (2 AIs)
+
 ```bash
-/tot "your problem"              # Default mode
-/tot debug                       # Debug with both AIs
-/tot refactor                    # Refactor with both AIs
-/tot --ratio 3:7                 # 30% Claude, 70% Codex
+# Claude + Gemini (Practical + Architecture)
+/tot --hybrid cg "your problem"
+
+# Claude + Codex (Practical + Performance) - Classic
+/tot --hybrid cx "your problem"
+
+# Gemini + Codex (Architecture + Performance)
+/tot --hybrid gx "your problem"
 ```
 
 **Characteristics:**
-- **Speed**: ~90 seconds (with Codex MCP configured)
-- **Strengths**: Deep analysis, algorithm optimization, multiple perspectives
-- **Best for**: Complex algorithms, performance optimization, novel problems
+- **Speed**: ~18-22 seconds
+- **Thoughts**: 6 total (3 from each AI)
+- **Best for**: Focused expertise in 2 specific areas
 
-**AI Distribution:**
-- **Claude** (60%): Practical solutions, quick fixes, user experience
-- **Codex** (40%): Deep technical analysis, algorithm optimization
-- **Ratio**: Configurable via `--ratio` flag (e.g., "5:5", "7:3", "3:7")
+#### 🚀 Single-AI Mode
+
+```bash
+/tot -c "your problem"           # Claude-only (practical)
+/tot -g "your problem"           # Gemini-only (architecture)
+/tot -x "your problem"           # Codex-only (performance)
+```
+
+**Characteristics:**
+- **Speed**: ~15-18 seconds
+- **Thoughts**: 6 total (all from one AI)
+- **Best for**: Quick analysis, specific expertise needed
 
 ### Problem Type Examples
 
@@ -187,12 +235,14 @@ Based on Princeton ToT paper parameters:
 
 | Scenario | Recommended Mode | Reason |
 |----------|------------------|--------|
+| Complex system design | Multi-AI (default) | Need practical + architecture + performance |
 | Quick bug fix | Claude-Only (`-c`) | Faster, sufficient for common issues |
-| Algorithm optimization | Hybrid with Codex ratio high | Deep technical analysis needed |
+| Architecture planning | `--hybrid cg` or `-g` | Gemini's design expertise |
+| Algorithm optimization | `--hybrid cx` or `-x` | Codex's performance focus |
 | Standard refactoring | Claude-Only (`-c`) | Proven patterns work well |
-| Novel architecture | Hybrid (default) | Multiple perspectives valuable |
-| Time-critical | Claude-Only (`-c`) | 35 seconds faster |
-| Research-oriented | Hybrid with Codex ratio high | Cutting-edge approaches |
+| Novel architecture | Multi-AI (default) | Maximum diversity needed |
+| Performance tuning | `--hybrid gx` | Architecture + Optimization |
+| Time-critical | Claude-Only (`-c`) | Fastest (~15s) |
 
 ## 📊 Algorithm Comparison
 
@@ -203,11 +253,17 @@ Based on Princeton ToT paper parameters:
 
 ## 📖 Documentation
 
+### Core Documentation
 - [Command Reference](./packages/cli/commands/tot.md) - Full `/tot` usage guide
+- [Multi-AI Template](./packages/cli/docs/templates/multi-ai-template.md) - Multi-AI usage patterns
 - [Core Algorithms](./docs/guide/core/) - BFS, DFS, evaluation methods
 - [Problem Templates](./docs/guide/templates/) - Debug, refactor, design
 - [Usage Examples](./docs/examples/) - Real-world scenarios
 - [Output Format](./docs/OUTPUT_FORMAT.md) - Transparent thought display
+
+### MCP Integration Guides
+- [Gemini MCP Integration](./packages/cli/docs/core/gemini-mcp-integration.md) - Gemini setup & usage
+- [Codex MCP Integration](./docs/guide/core/codex-mcp-integration.md) - Codex setup & usage
 
 ## 🏗️ Project Structure
 
