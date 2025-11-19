@@ -452,6 +452,25 @@ Selected Top 3-4 Thoughts (Multi-AI diversity):
   ✓ Thought 1 [Claude] - 8.7/10: [Practical Approach Title]
   ✓ Thought 4 [Gemini] - 8.8/10: [System Design Title] (if 4 selected)
 
+**DECISION POINT:**
+- If a clear, complete solution exists → Proceed to **Final Conclusion**
+- If solution needs more detail/validation → Proceed to **Level 3: Expansion**
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 Level 3: Expansion & Refinement (Depth Increase)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**For each selected thought in Level 2:**
+1. **Expand**: Concrete implementation details, code snippets, or specific commands
+2. **Validate**: Verify assumptions and potential edge cases
+3. **Refine**: Combine best aspects of other thoughts (Hybridization)
+
+*Example Expansion:*
+> Expanding Thought 5 [Codex]...
+> - Added caching layer (Redis) logic
+> - Defined cache invalidation strategy
+> - Validation: Check memory usage with load testing
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ Final Conclusion
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
