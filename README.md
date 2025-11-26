@@ -50,14 +50,15 @@ claude mcp add gemini-cli -s user -- npx -y gemini-mcp-tool
 
 ### Codex MCP (Performance & Optimization Focus)
 ```bash
-# 1. Install Codex MCP
-npm install -g @anthropics/codex-mcp
+# 1. Install OpenAI Codex CLI
+npm install -g @openai/codex
+# or: brew install codex
 
 # 2. Login to Codex
 codex login
 
-# 3. Add Codex to Claude Code MCP
-claude mcp add codex --scope user codex mcp
+# 3. Add Codex MCP to Claude Code
+claude mcp add codex -s user -- codex mcp-server
 ```
 
 ### Verify Installation
