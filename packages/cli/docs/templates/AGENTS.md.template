@@ -1,0 +1,95 @@
+# AGENTS.md - Project Context for AI Analysis
+
+> This file provides persistent context for AI tools (Codex, Gemini, Claude) to better understand your project.
+> Place this file at your project root or `~/.claude/tot/AGENTS.md` for global context.
+
+## Naming Conventions
+
+```yaml
+# Define your project's naming standards
+Functions: camelCase        # e.g., getUserById, calculateTotal
+Classes: PascalCase         # e.g., UserService, PaymentController
+Files: kebab-case           # e.g., user-service.ts, payment-controller.swift
+Constants: SCREAMING_SNAKE  # e.g., MAX_RETRY_COUNT, API_BASE_URL
+```
+
+## Architecture Patterns
+
+```yaml
+# Describe your project's architectural approach
+Pattern: MVVM                # or MVC, Clean Architecture, etc.
+Data Flow: Unidirectional    # View → ViewModel → Model → Repository
+State Management: Combine    # or Redux, SwiftUI @State, etc.
+
+Key Abstractions:
+  - Repository: Data access layer
+  - UseCase: Business logic encapsulation
+  - ViewModel: UI state management
+```
+
+## Known Quirks
+
+```yaml
+# Document non-obvious constraints or legacy decisions
+Platform Constraints:
+  - iOS 15+: async/await requires fallback for older versions
+  - API rate limit: 100 requests/minute
+
+Legacy Considerations:
+  - UserManager: Old singleton, being migrated to DI
+  - NetworkClient: Uses callback pattern (migration to async planned)
+
+Performance Notes:
+  - Image caching uses NSCache with 100MB limit
+  - Database queries should use batch operations for >100 items
+```
+
+## Dependencies
+
+```yaml
+# List critical dependencies and their purposes
+Core Frameworks:
+  - SwiftUI (iOS 16+): Primary UI framework
+  - Combine: Reactive programming
+
+Third-Party:
+  - Alamofire 5.x: Network requests
+  - Kingfisher: Image loading/caching
+  - SwiftLint: Code style enforcement
+
+Build Tools:
+  - Xcode 15+
+  - Swift Package Manager
+```
+
+## Code Style Guidelines
+
+```yaml
+# Specific style rules beyond naming
+Comments:
+  - Korean for inline comments
+  - English for public API documentation
+
+Error Handling:
+  - Use Result type for recoverable errors
+  - Throw for unrecoverable errors
+
+Testing:
+  - Unit tests in Tests/ directory
+  - Use XCTest framework
+  - Mock external dependencies
+```
+
+---
+
+## Usage
+
+1. Copy this template to your project root as `AGENTS.md`
+2. Fill in your project-specific details
+3. ToT will automatically load this context when analyzing your code
+
+## Benefits
+
+- **Better Analysis**: AI understands your project conventions
+- **Consistent Suggestions**: Solutions align with existing patterns
+- **Faster Debugging**: Context helps identify project-specific issues
