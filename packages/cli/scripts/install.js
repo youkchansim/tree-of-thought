@@ -10,6 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const https = require('https');
 
 // Colors for console output
 const colors = {
@@ -22,6 +23,39 @@ const colors = {
 
 function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
+}
+
+/**
+ * Check for new version on npm registry
+ */
+function checkForUpdate() {
+  return new Promise((resolve) => {
+    const packageJson = require('../package.json');
+    const currentVersion = packageJson.version;
+
+    const req = https.get('https://registry.npmjs.org/tree-of-thought-cli/latest', {
+      headers: { 'Accept': 'application/json' },
+      timeout: 3000
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const latest = JSON.parse(data);
+          if (latest.version && latest.version !== currentVersion) {
+            log(`\n⬆️  새 버전이 있습니다: v${currentVersion} → v${latest.version}`, 'yellow');
+            log(`   업데이트: npm update -g tree-of-thought-cli`, 'yellow');
+          }
+        } catch (e) {
+          // Silently ignore parse errors
+        }
+        resolve();
+      });
+    });
+
+    req.on('error', () => resolve()); // Silently ignore network errors
+    req.on('timeout', () => { req.destroy(); resolve(); });
+  });
 }
 
 function copyDirectory(source, target) {
@@ -52,7 +86,7 @@ function copyDirectory(source, target) {
   return fileCount;
 }
 
-function main() {
+async function main() {
   try {
     log('\n🌳 Installing Tree of Thought framework...', 'cyan');
 
@@ -139,6 +173,9 @@ function main() {
     log(`\nDocumentation:`, 'cyan');
     log(`   https://github.com/youkchansim/tree-of-thought`, 'cyan');
     log(`${'='.repeat(60)}\n`, 'cyan');
+
+    // Check for updates (non-blocking)
+    await checkForUpdate();
 
   } catch (error) {
     log('\n❌ Installation failed:', 'red');

@@ -2,6 +2,10 @@
   "name": "tree-of-thought-cli",
   "version": "0.2.0",
   "description": "Tree of Thought CLI - Multi-AI mode with Claude + Gemini + Codex for Claude Code",
+  "bin": {
+    "tree-of-thought-cli": "./scripts/install.js",
+    "tot-cli": "./scripts/install.js"
+  },
   "scripts": {
     "postinstall": "node scripts/install.js"
   },

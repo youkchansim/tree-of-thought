@@ -100,7 +100,7 @@ claude mcp add gemini-cli -s user -- npx -y gemini-mcp-tool
 This installs:
 - `mcp__gemini-cli__ask-gemini` - Main analysis tool
 - `mcp__gemini-cli__brainstorm` - Idea generation (optional)
-- Model selection: gemini-2.5-pro (default), gemini-2.5-flash
+- Model selection: gemini-cli 기본 모델 자동 사용 (-m 옵션 생략 시)
 
 ---
 

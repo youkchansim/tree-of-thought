@@ -4,11 +4,27 @@ CLI installer for Tree of Thought framework - adds `/tot` command to Claude Code
 
 ## Installation
 
+### Option 1: Global Install (Recommended)
+
 ```bash
 npm install -g tree-of-thought-cli
 ```
 
+### Option 2: One-line Install with npx
+
+```bash
+npx tree-of-thought-cli
+```
+
 That's it! The `/tot` command is now available in Claude Code.
+
+## Update
+
+```bash
+npm update -g tree-of-thought-cli
+```
+
+> 💡 **Auto Update Check**: The installer automatically checks for new versions and notifies you when updates are available.
 
 ### MCP Setup (Optional but Recommended)
 
@@ -118,8 +134,8 @@ This package installs command definitions to `~/.claude/commands/`:
 ## Uninstallation
 
 ```bash
-npm uninstall -g @tot/cli
-rm ~/.claude/commands/tot.md
+npm uninstall -g tree-of-thought-cli
+rm -rf ~/.claude/commands/tot.md ~/.claude/tot/
 ```
 
 ## Documentation
