@@ -105,6 +105,67 @@ Update the Codex MCP prompt with detected language:
 
 ---
 
+## 📁 STEP 0.7: AGENTS.md CONTEXT LOADING (Execute THIRD)
+
+**Automatically load project context from AGENTS.md for enhanced analysis:**
+
+### Context Loading Rules
+
+```yaml
+Search Priority:
+  1. Project root: ./AGENTS.md
+  2. Global config: ~/.claude/tot/AGENTS.md
+  3. Fallback: No context (proceed without)
+
+Loading Process:
+  1. Check if AGENTS.md exists in priority order
+  2. Read file content if found
+  3. Inject into MCP prompts under "# Project Context" section
+```
+
+### AGENTS.md Template
+
+If no AGENTS.md exists, suggest creating one:
+
+```markdown
+# AGENTS.md - Project Context for AI Analysis
+
+## Naming Conventions
+- Functions: camelCase
+- Classes: PascalCase
+- Files: kebab-case
+
+## Architecture Patterns
+- Pattern used (e.g., MVVM, Clean Architecture)
+- Data flow direction
+- Key abstractions
+
+## Known Quirks
+- Platform-specific constraints
+- Legacy code considerations
+- API rate limits
+
+## Dependencies
+- Core frameworks and versions
+- Critical third-party libraries
+```
+
+### Context Injection
+
+When AGENTS.md is found, add to ALL MCP prompts:
+
+```markdown
+# Project Context (from AGENTS.md)
+{agents_md_content}
+```
+
+**Benefits:**
+- Codex/Gemini can understand project-specific patterns
+- Analysis considers naming conventions and architecture
+- Solutions align with existing codebase style
+
+---
+
 ## Execution Instructions
 
 ### STEP 1A: Claude-Only Mode Execution
@@ -139,15 +200,32 @@ When in Hybrid mode (Codex MCP available):
    - Do NOT skip this step
    - Do NOT simulate Codex responses yourself
 
-   **Exact tool call format:**
+   **Exact tool call format (Github Issue Style):**
    ```
    mcp__codex__codex(
-       prompt="""You are a technical problem-solving expert. Analyze this problem and generate 2 distinct technical solution approaches.
+       prompt="""You are a technical problem-solving expert. Analyze this issue and generate 2 distinct technical solution approaches.
 
-# Problem
+## Issue: [Problem Title]
 [Insert user's actual problem description here]
 
-# Your Task
+### Related Files (if provided)
+- [File paths mentioned in problem]
+
+### Current Behavior
+[What is happening now - extract from problem description]
+
+### Expected Behavior
+[What should happen - infer from problem context]
+
+### Relevant Code Snippets (if provided)
+```
+[Any code snippets mentioned]
+```
+
+# Project Context (from AGENTS.md)
+[Insert AGENTS.md content here if available, otherwise omit this section]
+
+# Your Task - TECHNICAL ANALYSIS
 Generate 2 different technical approaches focusing on:
 - Deep technical analysis
 - Algorithm optimization
@@ -185,6 +263,7 @@ Return ONLY a JSON object in this exact format:
   - If problem is in Korean → Korean (한국어)
   - If problem is in English → English
 - Provide detailed technical depth in each thought
+- Consider project context (AGENTS.md) if provided
        """
    )
    ```
@@ -285,13 +364,30 @@ Return ONLY a JSON object in this exact format:
    - Do NOT skip this step
    - Focus: **Algorithm optimization and performance analysis**
 
-   **Exact tool call format:**
+   **Exact tool call format (Github Issue Style):**
    ```
    mcp__codex__codex(
-       prompt="""You are a performance optimization and algorithm expert. Analyze this problem and generate 2 distinct technical optimization approaches.
+       prompt="""You are a performance optimization and algorithm expert. Analyze this issue and generate 2 distinct technical optimization approaches.
 
-# Problem
+## Issue: [Problem Title]
 [Insert user's actual problem description here]
+
+### Related Files (if provided)
+- [File paths mentioned in problem]
+
+### Current Behavior
+[What is happening now - extract from problem description]
+
+### Expected Behavior
+[What should happen - infer from problem context]
+
+### Relevant Code Snippets (if provided)
+```
+[Any code snippets mentioned]
+```
+
+# Project Context (from AGENTS.md)
+[Insert AGENTS.md content here if available, otherwise omit this section]
 
 # Your Task - OPTIMIZATION FOCUS
 Generate 2 different technical optimization approaches focusing on:
@@ -332,6 +428,7 @@ Return ONLY a JSON object in this exact format:
   - If problem is in English → English
 - Provide detailed technical depth in each thought
 - Focus on PERFORMANCE and ALGORITHMS, not architecture
+- Consider project context (AGENTS.md) if provided
        """
    )
    ```

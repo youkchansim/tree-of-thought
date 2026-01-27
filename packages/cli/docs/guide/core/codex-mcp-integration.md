@@ -95,22 +95,45 @@ Task(
 ### 2. Prompt Structure
 
 ```yaml
-Codex MCP Prompt Composition:
-  1. Context Provision:
-     - Problem description (x)
-     - Current thought state (current_thought)
-     - Task type (Debug/Refactor/Design)
+Codex MCP Prompt Composition (Github Issue Style - v0.2.1+):
+  1. Issue Context (Github Issue Style):
+     - Issue title and description
+     - Related files (if provided)
+     - Current behavior vs Expected behavior
+     - Relevant code snippets
 
-  2. Generation Instructions:
+  2. Project Context (from AGENTS.md):
+     - Naming conventions
+     - Architecture patterns
+     - Known quirks and constraints
+     - Dependencies information
+
+  3. Task Specification:
      - Number of thoughts to generate
      - Output format (JSON)
      - Quality criteria
 
-  3. Constraints:
-     - Korean response
+  4. Constraints:
+     - Language (Korean/English based on input)
      - Technical depth
      - Specific perspective (algorithm/performance)
 ```
+
+### 3. AGENTS.md Context Loading
+
+```yaml
+AGENTS.md Search Priority:
+  1. Project root: ./AGENTS.md
+  2. Global config: ~/.claude/tot/AGENTS.md
+  3. Fallback: Proceed without context
+
+Benefits:
+  - Project-specific analysis (naming conventions, architecture)
+  - Solutions aligned with existing codebase style
+  - Better understanding of constraints and quirks
+```
+
+See `packages/cli/docs/templates/AGENTS.md.template` for the template file.
 
 ---
 
